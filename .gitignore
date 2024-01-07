@@ -76,4 +76,5 @@ config/*
 
 /custom_components/__init__.py
 /test*.py
+/custom_components/ryobi_gdo/dooridcopy.py
 secrets.yaml
