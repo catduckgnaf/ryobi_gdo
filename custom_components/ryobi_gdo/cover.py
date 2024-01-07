@@ -11,7 +11,6 @@ from datetime import timedelta
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.components.cover import (
-    CoverEntity, PLATFORM_SCHEMA, SUPPORT_OPEN, SUPPORT_CLOSE)
 from homeassistant.const import (
     CONF_USERNAME, CONF_PASSWORD, STATE_UNKNOWN, STATE_CLOSED)
 
@@ -22,9 +21,6 @@ _LOGGER = logging.getLogger(__name__)
 
 
 CONF_DEVICE_ID = 'device_id'
-
-
-
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
     """Set up the Ryobi covers."""

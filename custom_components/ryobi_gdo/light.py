@@ -10,8 +10,6 @@ from datetime import timedelta
 
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.components.light import (
-    LightEntity, PLATFORM_SCHEMA)
 from homeassistant.const import (
     CONF_USERNAME, CONF_PASSWORD, STATE_UNKNOWN, STATE_CLOSED)
 
