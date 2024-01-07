@@ -12,7 +12,6 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import RyobiApiClient
 from .const import DOMAIN
-from .coordinator import RyobiDataUpdateCoordinator
 
 PLATFORMS: list[Platform] = [
     Platform.COVER,
