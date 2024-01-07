@@ -1,0 +1,14 @@
+{
+    "domain": "ryobi_gdo",
+    "name": "Ryobi Garage Door Opener",
+    "codeowners": [
+        "@catduckgnaf"
+    ],
+    "config_flow": true,
+    "dependencies": [],
+    "documentation": "https://github.com/catduckgnaf/ryobi_gdo",
+    "iot_class": "cloud_polling",
+    "issue_tracker": "https://github.com/catduckgnaf/ryobi_gdo/issues",
+    "requirements": [],
+    "version": "0.1.0"
+}
