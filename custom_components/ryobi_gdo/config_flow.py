@@ -15,10 +15,9 @@ from .api import (
 )
 from .const import DOMAIN, LOGGER
 
-class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Config flow for ryobi_gdo."""
+# ... (existing import statements)
 
-    VERSION = 1
+class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self,
@@ -61,7 +60,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-  async def _test_credentials(self, username: str, password: str) -> None:
+    async def _test_credentials(self, username: str, password: str) -> None:
         """Validate credentials and retrieve device IDs."""
         client = RyobiApiClient(
             username=username,
@@ -78,20 +77,27 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         async with aiohttp.ClientSession() as session:
             # Perform login
             async with session.post('https://tti.tiwiconnect.com/api/login', data=uandp) as login_response:
+                login_response.raise_for_status()  # Raise exception for non-2xx status codes
                 login_result = await login_response.json()
 
                 # Check if login was successful
-                if login_response.status == 200 and login_result.get('success'):
+                if login_result.get('success'):
                     # Perform devices request
                     async with session.get('https://tti.tiwiconnect.com/api/devices', params=uandp) as devices_response:
+                        devices_response.raise_for_status()  # Raise exception for non-2xx status codes
                         devices_result = await devices_response.json()
 
                         # Check if devices request was successful
-                        if devices_response.status == 200 and devices_result.get('success'):
+                        if devices_result.get('success'):
                             # Process the devices
                             for result in devices_result['result']:
                                 if 'gdoMasterUnit' in result.get('deviceTypeIds', []):
-                                    print(result['metaData']['name'], '- Device ID:', result['varName'])
+                                    # Use Home Assistant logger
+                                    self.logger.info(
+                                        "%s - Device ID: %s",
+                                        result['metaData']['name'],
+                                        result['varName']
+                                    )
                         else:
                             raise Exception("Failed to retrieve devices. Check your credentials and try again.")
                 else:
