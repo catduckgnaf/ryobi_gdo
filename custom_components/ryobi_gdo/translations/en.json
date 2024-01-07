@@ -2,7 +2,7 @@
     "config": {
         "step": {
             "user": {
-                "description": "If you need help with the configuration have a look here: https://github.com/catduckgnaf/ryobi_gdo",
+                "description": "Enter your username and password",
                 "data": {
                     "username": "Username",
                     "password": "Password"

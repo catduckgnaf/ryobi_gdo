@@ -20,41 +20,7 @@ from homeassistant.const import (
 DOMAIN = "ryobi_gdo"
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=60)
-
 CONF_DEVICE_ID = 'device_id'
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-})
-
-def setup_platform(hass, config, add_entities, discovery_info=None):
-    """Set up the Ryobi lights."""
-    from .py_ryobi_gdo import RyobiGDO as ryobi_door
-    lights = []
-
-    username = config.get(CONF_USERNAME)
-    password = config.get(CONF_PASSWORD)
-    devices = config.get(CONF_DEVICE_ID)
-
-    for device_id in devices:
-        my_door = ryobi_door(username, password, device_id)
-        _LOGGER.debug("Getting the API key")
-        if my_door.get_api_key() is False:
-            _LOGGER.error("Wrong credentials, no API key retrieved")
-            return
-        _LOGGER.debug("Checking if the device ID is present")
-        if my_door.check_device_id() is False:
-            _LOGGER.error("%s not in your device list", device_id)
-            return
-        _LOGGER.debug("Adding device %s to lights", device_id)
-        lights.append(RyobiLight(hass, my_door))
-    if lights:
-        _LOGGER.debug("Adding lights")
-        add_entities(lights, True)
-
 
 class RyobiLight(LightEntity):
     """Representation of a ryobi light."""
