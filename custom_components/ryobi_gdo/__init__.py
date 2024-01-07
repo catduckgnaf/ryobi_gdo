@@ -5,46 +5,68 @@ https://github.com/catduckgnaf/ryobi_gdo
 """
 from __future__ import annotations
 
+import asyncio
+
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_PASSWORD, CONF_USERNAME, Platform
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.core import Config, HomeAssistant
+from homeassistant.exceptions import ConfigEntryNotReady
 
-from .api import RyobiApiClient
-from .const import DOMAIN
-
-PLATFORMS: list[Platform] = [
-    Platform.COVER,
-    Platform.LIGHT,
-]
+from .const import COORDINATOR, DOMAIN, ISSUE_URL, LOGGER, PLATFORMS, VERSION
+from .coordinator import RyobiDataUpdateCoordinator
 
 
-# https://developers.home-assistant.io/docs/config_entries_index/#setting-up-an-entry
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_setup(  # pylint: disable-next=unused-argument
+    hass: HomeAssistant, config: Config
+) -> bool:
+    """Disallow configuration via YAML."""
+    return True
+
+
+async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Set up this integration using UI."""
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = coordinator = RyobiDataUpdateCoordinator(
-        hass=hass,
-        client=RyobiGdoApiClient(
-            username=entry.data[CONF_USERNAME],
-            password=entry.data[CONF_PASSWORD],
-            session=async_get_clientsession(hass),
-        ),
+    LOGGER.info(
+        "Version %s is starting, if you have any issues please report them here: %s",
+        VERSION,
+        ISSUE_URL,
     )
-    # https://developers.home-assistant.io/docs/integration_fetching_data#coordinated-single-api-poll-for-data-for-all-entities
-    await coordinator.async_config_entry_first_refresh()
+    interval = 60  # Time in seconds
+    coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry)
 
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
-    entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    # Fetch initial data so we have data when entities subscribe
+    await coordinator.async_refresh()
+
+    if not coordinator.last_update_success:
+        raise ConfigEntryNotReady
+
+    hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
+
+    for platform in PLATFORMS:
+        hass.async_create_task(
+            hass.config_entries.async_forward_entry_setup(config_entry, platform)
+        )
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
     """Handle removal of an entry."""
-    if unloaded := await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
-        hass.data[DOMAIN].pop(entry.entry_id)
-    return unloaded
+    LOGGER.debug("Attempting to unload entities from the %s integration", DOMAIN)
+
+    unload_ok = all(
+        await asyncio.gather(
+            *[
+                hass.config_entries.async_forward_entry_unload(config_entry, platform)
+                for platform in PLATFORMS
+            ]
+        )
+    )
+
+    if unload_ok:
+        LOGGER.debug("Successfully removed entities from the %s integration", DOMAIN)
+        hass.data[DOMAIN].pop(config_entry.entry_id)
+
+    return unload_ok
 
 
 async def async_reload_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
