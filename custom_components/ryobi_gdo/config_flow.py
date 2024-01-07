@@ -32,21 +32,11 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
-            except RyobiApiClientApiClientAuthenticationError as exception:
-                LOGGER.warning(exception)
-                _errors["base"] = "auth"
-            except RyobiApiClientApiClientCommunicationError as exception:
-                LOGGER.error(exception)
-                _errors["base"] = "connection"
-            except RyobiApiClientApiClientError as exception:
-                LOGGER.exception(exception)
-                _errors["base"] = "unknown"
             else:
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME],
                     data=user_input,
                 )
-
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(
