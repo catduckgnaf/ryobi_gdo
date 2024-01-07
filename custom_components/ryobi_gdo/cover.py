@@ -20,17 +20,10 @@ from homeassistant.const import (
 DOMAIN = "ryobi_gdo"
 _LOGGER = logging.getLogger(__name__)
 
-SCAN_INTERVAL = timedelta(seconds=60)
 
 CONF_DEVICE_ID = 'device_id'
 
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_DEVICE_ID): vol.All(cv.ensure_list, [cv.string]),
-    vol.Required(CONF_PASSWORD): cv.string,
-    vol.Required(CONF_USERNAME): cv.string,
-})
 
-SUPPORTED_FEATURES = (SUPPORT_OPEN | SUPPORT_CLOSE)
 
 
 def setup_platform(hass, config, add_entities, discovery_info=None):
