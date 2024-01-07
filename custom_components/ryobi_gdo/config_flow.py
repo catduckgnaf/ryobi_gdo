@@ -1,4 +1,4 @@
-"""Adds config flow for Blueprint."""
+"""Adds config flow for Ryobi GDO."""
 from __future__ import annotations
 
 import voluptuous as vol
@@ -14,7 +14,6 @@ from .api import (
 )
 from .const import DOMAIN, LOGGER
 
-
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for ryobi_gdo."""
 
@@ -25,13 +24,15 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         user_input: dict | None = None,
     ) -> config_entries.FlowResult:
         """Handle a flow initialized by the user."""
-        _errors = {}
+        errors = {}
         if user_input is not None:
             try:
                 await self._test_credentials(
                     username=user_input[CONF_USERNAME],
                     password=user_input[CONF_PASSWORD],
                 )
+            except Exception as ex:
+                errors["base"] = "Authentication failed. Please check your credentials."
             else:
                 return self.async_create_entry(
                     title=user_input[CONF_USERNAME],
@@ -56,14 +57,15 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     ),
                 }
             ),
-            errors=_errors,
+            errors=errors,
         )
 
     async def _test_credentials(self, username: str, password: str) -> None:
         """Validate credentials."""
-        client = RyobiGDO(
+        client = RyobiApiClient(
             username=username,
             password=password,
             session=async_create_clientsession(self.hass),
         )
         await client.async_get_data()
+
