@@ -102,7 +102,7 @@ class RyobiApiClient:
                 if data["varName"] == self.device_id:
                     device_found = True
         return device_found
-    
+
     async def get_devices(self) -> list:
         """Return list of devices found."""
         answer = False

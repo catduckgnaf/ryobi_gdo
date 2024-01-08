@@ -12,14 +12,13 @@ from .const import DOMAIN, LOGGER, CONF_DEVICE_ID
 
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
     def __init__(self):
         """Initialize."""
         self._data = {}
-    
+
     async def async_step_user(
         self,
         user_input: dict | None = None,
@@ -28,9 +27,9 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         errors = {}
         if user_input is not None:
             result = await self._test_credentials(
-                    username=user_input[CONF_USERNAME],
-                    password=user_input[CONF_PASSWORD],
-                )
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+            )
             if not result:
                 errors["base"] = "Authentication failed. Please check your credentials."
             else:
@@ -58,7 +57,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             errors=errors,
         )
-    
+
     async def async_step_user_2(
         self,
         user_input: dict | None = None,
@@ -71,7 +70,9 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 title=self._data[CONF_USERNAME],
                 data=self._data,
             )
-        device_list = await self._get_device_ids(self._data[CONF_USERNAME],self._data[CONF_PASSWORD])
+        device_list = await self._get_device_ids(
+            self._data[CONF_USERNAME], self._data[CONF_PASSWORD]
+        )
         return self.async_show_form(
             step_id="user_2",
             data_schema=vol.Schema(
@@ -83,7 +84,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
-        )    
+        )
 
     async def _test_credentials(self, username: str, password: str) -> bool:
         """Validate credentials and retrieve device IDs."""
@@ -98,4 +99,3 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Get the devices associated with account
         return await client.get_devices()
-    
