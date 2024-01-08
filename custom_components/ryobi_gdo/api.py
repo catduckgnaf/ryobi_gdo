@@ -1,7 +1,8 @@
+"""API interface for Ryobi GDO."""
+
 from __future__ import annotations
 
 import json
-import logging
 
 import requests
 import websocket
@@ -51,7 +52,7 @@ class RyobiApiClient:
         self._connection = websocket.create_connection
 
     async def get_api_key(self) -> bool:
-        """Getting api_key from Ryobi."""
+        """Get api_key from Ryobi."""
         auth_ok = False
         for attempt in range(5):
             try:
@@ -61,7 +62,7 @@ class RyobiApiClient:
                     data={"username": self.username, "password": self.password},
                 )
             except requests.exceptions.RequestException:
-                print("Exception while requesting Ryobi to get API Key")
+                LOGGER.error("Exception while requesting Ryobi to get API Key")
             else:
                 break
         if resp.status_code == 200:
@@ -70,12 +71,12 @@ class RyobiApiClient:
                 self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
                 auth_ok = True
             except KeyError:
-                print("Exception while parsing Ryobi answer to get API key")
+                LOGGER.error("Exception while parsing Ryobi answer to get API key")
                 return False
         return auth_ok
 
     async def check_device_id(self) -> bool:
-        """Checking device_id from Ryobi."""
+        """Check device_id from Ryobi."""
         device_found = False
         answer = False
         for attempt in range(5):
@@ -86,22 +87,50 @@ class RyobiApiClient:
                     data={"username": self.username, "password": self.password},
                 )
             except requests.exceptions.RequestException:
-                print("Exception while requesting Ryobi to check device ID")
+                LOGGER.error("Exception while requesting Ryobi to check device ID")
             else:
                 answer = True
                 break
-        if answer == True and resp.status_code == 200:
+        if answer and resp.status_code == 200:
             try:
                 result = resp.json()["result"]
             except KeyError:
                 return device_found
         if len(result) == 0:
-            print("empty result")
+            LOGGER.error("API error: empty result")
         else:
             for data in result:
                 if data["varName"] == self.device_id:
                     device_found = True
         return device_found
+
+    async def get_devices(self) -> list:
+        """Return list of devices found."""
+        answer = False
+        devices = []
+        for attempt in range(5):
+            try:
+                resp = requests.get(
+                    f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}",
+                    timeout=REQUEST_TIMEOUT,
+                    data={"username": self.username, "password": self.password},
+                )
+            except requests.exceptions.RequestException:
+                LOGGER.error("Exception while requesting Ryobi to check device ID")
+            else:
+                answer = True
+                break
+        if answer and resp.status_code == 200:
+            try:
+                result = resp.json()["result"]
+            except KeyError:
+                return devices
+        if len(result) == 0:
+            LOGGER.error("API error: empty result")
+        else:
+            for data in result:
+                devices.append(data)
+        return devices
 
     async def update(self) -> bool:
         """Update door status from Ryobi."""
@@ -119,7 +148,7 @@ class RyobiApiClient:
             else:
                 answer = True
                 break
-        if answer == True and resp.status_code == 200:
+        if answer and resp.status_code == 200:
             try:
                 gdo_status = resp.json()
                 dtm = gdo_status["result"][0]["deviceTypeMap"]
@@ -161,7 +190,7 @@ class RyobiApiClient:
         return self.send_message("doorCommand", 1)
 
     async def send_message(self, command, value):
-        """Generic send message."""
+        """Send message to API."""
         ws_auth = False
         for attempt in range(5):
             try:
@@ -177,14 +206,14 @@ class RyobiApiClient:
                     }
                 )
                 websocket.send(auth_mssg)
-                result = websocket.recv()
+                websocket.recv()
             except Exception as ex:
-                print("Exception during websocket authentification")
+                LOGGER.error("Exception during websocket authentification: %s", ex)
                 websocket.close()
             else:
                 ws_auth = True
                 break
-        if ws_auth == True:
+        if ws_auth:
             for attempt in range(5):
                 try:
                     pay_load = json.dumps(
@@ -202,9 +231,9 @@ class RyobiApiClient:
                     )
                     websocket.send(pay_load)
                     pay_load = ""
-                    result = websocket.recv()
+                    websocket.recv()
                 except Exception as ex:
-                    LOGGER.error("Exception during sending message")
+                    LOGGER.error("Exception during sending message: %s", ex)
                     websocket.close()
                 else:
                     break

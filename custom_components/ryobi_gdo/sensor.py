@@ -1,7 +1,8 @@
 """Support for Ryobi GDO sensors."""
+
 from __future__ import annotations
 
-from typing import Final, Optional
+from typing import Any, Final, Optional
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -20,7 +21,6 @@ from .const import (
     CONF_DEVICE_ID,
     COORDINATOR,
     DOMAIN,
-    LOGGER,
 )
 
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {

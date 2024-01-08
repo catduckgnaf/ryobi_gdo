@@ -1,8 +1,5 @@
-"""
-Ryobi platform for the light component.
-For more details about this platform, please refer to the documentation
-https://home-assistant.io/components/cover.ryobi_gdo/
-"""
+"""Ryobi platform for the switch component."""
+
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity

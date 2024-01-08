@@ -7,6 +7,12 @@
                     "username": "Username",
                     "password": "Password"
                 }
+            },
+            "user_2":{
+                "description": "Select opener to setup",
+                "data": {
+                    "device_id": "Device ID"
+                }
             }
         },
         "error": {
