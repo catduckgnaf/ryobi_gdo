@@ -1,4 +1,5 @@
 """Support for Ryobi GDO sensors."""
+
 from __future__ import annotations
 
 from typing import Any, Final, Optional

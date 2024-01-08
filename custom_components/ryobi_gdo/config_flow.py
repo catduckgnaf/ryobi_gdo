@@ -13,7 +13,7 @@ from .const import DOMAIN, CONF_DEVICE_ID
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Ryobit GDO."""
-    
+
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 

@@ -231,9 +231,9 @@ class RyobiApiClient:
                     )
                     websocket.send(pay_load)
                     pay_load = ""
-                    result = websocket.recv()
+                    websocket.recv()
                 except Exception as ex:
-                    LOGGER.error("Exception during sending message")
+                    LOGGER.error("Exception during sending message: %s", ex)
                     websocket.close()
                 else:
                     break
