@@ -61,7 +61,7 @@ class RyobiApiClient:
                     data={"username": self.username, "password": self.password},
                 )
             except requests.exceptions.RequestException:
-                print("Exception while requesting Ryobi to get API Key")
+                LOGGER.error("Exception while requesting Ryobi to get API Key")
             else:
                 break
         if resp.status_code == 200:
@@ -70,7 +70,7 @@ class RyobiApiClient:
                 self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
                 auth_ok = True
             except KeyError:
-                print("Exception while parsing Ryobi answer to get API key")
+                LOGGER.error("Exception while parsing Ryobi answer to get API key")
                 return False
         return auth_ok
 
@@ -86,7 +86,7 @@ class RyobiApiClient:
                     data={"username": self.username, "password": self.password},
                 )
             except requests.exceptions.RequestException:
-                print("Exception while requesting Ryobi to check device ID")
+                LOGGER.error("Exception while requesting Ryobi to check device ID")
             else:
                 answer = True
                 break
@@ -96,12 +96,40 @@ class RyobiApiClient:
             except KeyError:
                 return device_found
         if len(result) == 0:
-            print("empty result")
+            LOGGER.error("API error: empty result")
         else:
             for data in result:
                 if data["varName"] == self.device_id:
                     device_found = True
         return device_found
+    
+    async def get_devices(self) -> list:
+        """Return list of devices found."""
+        answer = False
+        devices = []
+        for attempt in range(5):
+            try:
+                resp = requests.get(
+                    f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}",
+                    timeout=REQUEST_TIMEOUT,
+                    data={"username": self.username, "password": self.password},
+                )
+            except requests.exceptions.RequestException:
+                LOGGER.error("Exception while requesting Ryobi to check device ID")
+            else:
+                answer = True
+                break
+        if answer == True and resp.status_code == 200:
+            try:
+                result = resp.json()["result"]
+            except KeyError:
+                return devices
+        if len(result) == 0:
+            LOGGER.error("API error: empty result")
+        else:
+            for data in result:
+                devices.append(data)
+        return devices
 
     async def update(self) -> bool:
         """Update door status from Ryobi."""
