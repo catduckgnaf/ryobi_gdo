@@ -39,7 +39,7 @@ class RyobiApiClient:
         "True": STATE_ON,
     }
 
-    async def __init__(self, username: str, password: str, device_id: str | None):
+    async def __init__(self, username: str, password: str, device_id: str | None = None):
         """Initialize the API object."""
         self.username = username
         self.password = password
