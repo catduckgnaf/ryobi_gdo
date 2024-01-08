@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import RyobiApiClient
-from .const import CONF_DEVICE_ID, DOMAIN, LOGGER
+from .const import CONF_DEVICE_ID, LOGGER
 
 
 class RyobiDataUpdateCoordinator(DataUpdateCoordinator):

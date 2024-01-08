@@ -1,7 +1,8 @@
+"""API interface for Ryobi GDO."""
+
 from __future__ import annotations
 
 import json
-import logging
 
 import requests
 import websocket
@@ -51,7 +52,7 @@ class RyobiApiClient:
         self._connection = websocket.create_connection
 
     async def get_api_key(self) -> bool:
-        """Getting api_key from Ryobi."""
+        """Get api_key from Ryobi."""
         auth_ok = False
         for attempt in range(5):
             try:
@@ -75,7 +76,7 @@ class RyobiApiClient:
         return auth_ok
 
     async def check_device_id(self) -> bool:
-        """Checking device_id from Ryobi."""
+        """Check device_id from Ryobi."""
         device_found = False
         answer = False
         for attempt in range(5):
@@ -90,7 +91,7 @@ class RyobiApiClient:
             else:
                 answer = True
                 break
-        if answer == True and resp.status_code == 200:
+        if answer and resp.status_code == 200:
             try:
                 result = resp.json()["result"]
             except KeyError:
@@ -119,7 +120,7 @@ class RyobiApiClient:
             else:
                 answer = True
                 break
-        if answer == True and resp.status_code == 200:
+        if answer and resp.status_code == 200:
             try:
                 result = resp.json()["result"]
             except KeyError:
@@ -147,7 +148,7 @@ class RyobiApiClient:
             else:
                 answer = True
                 break
-        if answer == True and resp.status_code == 200:
+        if answer and resp.status_code == 200:
             try:
                 gdo_status = resp.json()
                 dtm = gdo_status["result"][0]["deviceTypeMap"]
@@ -189,7 +190,7 @@ class RyobiApiClient:
         return self.send_message("doorCommand", 1)
 
     async def send_message(self, command, value):
-        """Generic send message."""
+        """Send message to API."""
         ws_auth = False
         for attempt in range(5):
             try:
@@ -207,12 +208,12 @@ class RyobiApiClient:
                 websocket.send(auth_mssg)
                 result = websocket.recv()
             except Exception as ex:
-                print("Exception during websocket authentification")
+                LOGGER.error("Exception during websocket authentification: %s", ex)
                 websocket.close()
             else:
                 ws_auth = True
                 break
-        if ws_auth == True:
+        if ws_auth:
             for attempt in range(5):
                 try:
                     pay_load = json.dumps(

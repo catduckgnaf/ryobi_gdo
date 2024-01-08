@@ -8,10 +8,12 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 
 from .api import RyobiApiClient
-from .const import DOMAIN, LOGGER, CONF_DEVICE_ID
+from .const import DOMAIN, CONF_DEVICE_ID
 
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Config flow for Ryobit GDO."""
+    
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
