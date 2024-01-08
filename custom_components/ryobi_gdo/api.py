@@ -5,7 +5,11 @@ from __future__ import annotations
 import json
 
 import requests
+from typing import Any
 import websocket
+
+import aiohttp  # type: ignore
+from aiohttp.client_exceptions import ContentTypeError, ServerTimeoutError, ServerConnectionError
 
 from homeassistant.const import (
     STATE_CLOSED,
@@ -51,51 +55,54 @@ class RyobiApiClient:
         self._data = {}
         self._connection = websocket.create_connection
 
+    async def _process_request(self, url: str, method: str, data: dict[str, str]) -> Any:
+        """Process HTTP requests."""
+        async with aiohttp.ClientSession() as session:
+            http_hethod = getattr(session, method)
+            LOGGER.debug("Connectiong to %s using %s", url, method)
+            try:
+                async with http_hethod(url,data=data) as response:
+                    reply = response.text()
+                    try:
+                        json.loads(reply)
+                    except ValueError:
+                        LOGGER.warning("Reply was not in JSON format: %s",response.text())
+
+                    if response.status in [404,405,500]:
+                        LOGGER.warning("HTTP Error: %s", response.text())
+            except (TimeoutError, ServerTimeoutError):
+                LOGGER.error("Timeout connecting to %s", url)
+            except ServerConnectionError:
+                LOGGER.error("Problem connecting to server at %s", url)
+            await session.close()
+            return reply
+
     async def get_api_key(self) -> bool:
         """Get api_key from Ryobi."""
         auth_ok = False
-        for attempt in range(5):
-            try:
-                resp = requests.post(
-                    f"https://{HOST_URI}/{LOGIN_ENDPOINT}",
-                    timeout=REQUEST_TIMEOUT,
-                    data={"username": self.username, "password": self.password},
-                )
-            except requests.exceptions.RequestException:
-                LOGGER.error("Exception while requesting Ryobi to get API Key")
-            else:
-                break
-        if resp.status_code == 200:
-            try:
-                resp_meta = resp.json()["result"]["metaData"]
-                self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
-                auth_ok = True
-            except KeyError:
-                LOGGER.error("Exception while parsing Ryobi answer to get API key")
-                return False
+        url = f"https://{HOST_URI}/{LOGIN_ENDPOINT}"
+        data = {"username": self.username, "password": self.password}
+        method = "post"
+        request = await self._process_request(url,method,data)
+        try:
+            resp_meta = request.json()["result"]["metaData"]
+            self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
+            auth_ok = True
+        except KeyError:
+            LOGGER.error("Exception while parsing Ryobi answer to get API key")
         return auth_ok
 
     async def check_device_id(self) -> bool:
         """Check device_id from Ryobi."""
         device_found = False
-        answer = False
-        for attempt in range(5):
-            try:
-                resp = requests.get(
-                    f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}",
-                    timeout=REQUEST_TIMEOUT,
-                    data={"username": self.username, "password": self.password},
-                )
-            except requests.exceptions.RequestException:
-                LOGGER.error("Exception while requesting Ryobi to check device ID")
-            else:
-                answer = True
-                break
-        if answer and resp.status_code == 200:
-            try:
-                result = resp.json()["result"]
-            except KeyError:
-                return device_found
+        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
+        data = {"username": self.username, "password": self.password}
+        method = "get"
+        request = await self._process_request(url,method,data)
+        try:
+            result = request.json()["result"]
+        except KeyError:
+            return device_found
         if len(result) == 0:
             LOGGER.error("API error: empty result")
         else:
@@ -106,25 +113,15 @@ class RyobiApiClient:
 
     async def get_devices(self) -> list:
         """Return list of devices found."""
-        answer = False
         devices = []
-        for attempt in range(5):
-            try:
-                resp = requests.get(
-                    f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}",
-                    timeout=REQUEST_TIMEOUT,
-                    data={"username": self.username, "password": self.password},
-                )
-            except requests.exceptions.RequestException:
-                LOGGER.error("Exception while requesting Ryobi to check device ID")
-            else:
-                answer = True
-                break
-        if answer and resp.status_code == 200:
-            try:
-                result = resp.json()["result"]
-            except KeyError:
-                return devices
+        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
+        data = {"username": self.username, "password": self.password}
+        method = "get"
+        request = await self._process_request(url,method,data)        
+        try:
+            result = request.json()["result"]
+        except KeyError:
+            return devices
         if len(result) == 0:
             LOGGER.error("API error: empty result")
         else:
@@ -135,34 +132,23 @@ class RyobiApiClient:
     async def update(self) -> bool:
         """Update door status from Ryobi."""
         update_ok = False
-        answer = False
-        for attempt in range(5):
-            try:
-                resp = requests.get(
-                    f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}",
-                    timeout=REQUEST_TIMEOUT,
-                    data={"username": self.username, "password": self.password},
-                )
-            except requests.exceptions.RequestException:
-                print("Exception while requesting Ryobi to update device")
-            else:
-                answer = True
-                break
-        if answer and resp.status_code == 200:
-            try:
-                gdo_status = resp.json()
-                dtm = gdo_status["result"][0]["deviceTypeMap"]
-                door_state = dtm["garageDoor_7"]["at"]["doorState"]["value"]
-                self._data["door_state"] = self.DOOR_STATE[str(door_state)]
-                light_state = dtm["garageLight_7"]["at"]["lightState"]["value"]
-                self._data["light_state"] = self.LIGHT_STATE[str(light_state)]
-                self._data["battery_level"] = dtm["backupCharger_8"]["at"][
-                    "chargeLevel"
-                ]["value"]
-                update_ok = True
-            except KeyError:
-                print("Exception while parsing answer to update device")
-                return update_ok
+        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
+        data = {"username": self.username, "password": self.password}
+        method = "get"
+        request = await self._process_request(url,method,data)          
+        try:
+            gdo_status = request.json()
+            dtm = gdo_status["result"][0]["deviceTypeMap"]
+            door_state = dtm["garageDoor_7"]["at"]["doorState"]["value"]
+            self._data["door_state"] = self.DOOR_STATE[str(door_state)]
+            light_state = dtm["garageLight_7"]["at"]["lightState"]["value"]
+            self._data["light_state"] = self.LIGHT_STATE[str(light_state)]
+            self._data["battery_level"] = dtm["backupCharger_8"]["at"][
+                "chargeLevel"
+            ]["value"]
+            update_ok = True
+        except KeyError:
+            print("Exception while parsing answer to update device")
         return update_ok
 
     def get_door_status(self):
