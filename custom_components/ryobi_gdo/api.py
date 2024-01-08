@@ -68,7 +68,7 @@ class RyobiApiClient:
             LOGGER.debug("Connectiong to %s using %s", url, method)
             try:
                 async with http_hethod(url, data=data) as response:
-                    reply = response.text()
+                    reply = await response.text()
                     try:
                         json.loads(reply)
                     except ValueError:
