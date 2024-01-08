@@ -156,7 +156,7 @@ class RyobiApiClient:
             ]
             update_ok = True
         except KeyError:
-            print("Exception while parsing answer to update device")
+            LOGGER.error("Exception while parsing answer to update device")
         return update_ok
 
     def get_door_status(self):
