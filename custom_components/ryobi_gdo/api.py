@@ -70,7 +70,7 @@ class RyobiApiClient:
                 async with http_hethod(url, data=data) as response:
                     reply = await response.text()
                     try:
-                        json.loads(reply)
+                        reply = json.loads(reply)
                     except ValueError:
                         LOGGER.warning(
                             "Reply was not in JSON format: %s", response.text()
@@ -93,7 +93,7 @@ class RyobiApiClient:
         method = "post"
         request = await self._process_request(url, method, data)
         try:
-            resp_meta = request.json()["result"]["metaData"]
+            resp_meta = request["result"]["metaData"]
             self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
             auth_ok = True
         except KeyError:
@@ -108,7 +108,7 @@ class RyobiApiClient:
         method = "get"
         request = await self._process_request(url, method, data)
         try:
-            result = request.json()["result"]
+            result = request["result"]
         except KeyError:
             return device_found
         if len(result) == 0:
@@ -145,7 +145,7 @@ class RyobiApiClient:
         method = "get"
         request = await self._process_request(url, method, data)
         try:
-            gdo_status = request.json()
+            gdo_status = request
             dtm = gdo_status["result"][0]["deviceTypeMap"]
             door_state = dtm["garageDoor_7"]["at"]["doorState"]["value"]
             self._data["door_state"] = self.DOOR_STATE[str(door_state)]
