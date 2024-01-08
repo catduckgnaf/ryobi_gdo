@@ -206,7 +206,7 @@ class RyobiApiClient:
                     }
                 )
                 websocket.send(auth_mssg)
-                result = websocket.recv()
+                websocket.recv()
             except Exception as ex:
                 LOGGER.error("Exception during websocket authentification: %s", ex)
                 websocket.close()
