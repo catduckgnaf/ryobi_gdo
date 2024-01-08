@@ -9,7 +9,11 @@ from typing import Any
 import websocket
 
 import aiohttp  # type: ignore
-from aiohttp.client_exceptions import ContentTypeError, ServerTimeoutError, ServerConnectionError
+from aiohttp.client_exceptions import (
+    ContentTypeError,
+    ServerTimeoutError,
+    ServerConnectionError,
+)
 
 from homeassistant.const import (
     STATE_CLOSED,
@@ -55,20 +59,24 @@ class RyobiApiClient:
         self._data = {}
         self._connection = websocket.create_connection
 
-    async def _process_request(self, url: str, method: str, data: dict[str, str]) -> Any:
+    async def _process_request(
+        self, url: str, method: str, data: dict[str, str]
+    ) -> Any:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
             LOGGER.debug("Connectiong to %s using %s", url, method)
             try:
-                async with http_hethod(url,data=data) as response:
+                async with http_hethod(url, data=data) as response:
                     reply = response.text()
                     try:
                         json.loads(reply)
                     except ValueError:
-                        LOGGER.warning("Reply was not in JSON format: %s",response.text())
+                        LOGGER.warning(
+                            "Reply was not in JSON format: %s", response.text()
+                        )
 
-                    if response.status in [404,405,500]:
+                    if response.status in [404, 405, 500]:
                         LOGGER.warning("HTTP Error: %s", response.text())
             except (TimeoutError, ServerTimeoutError):
                 LOGGER.error("Timeout connecting to %s", url)
@@ -83,7 +91,7 @@ class RyobiApiClient:
         url = f"https://{HOST_URI}/{LOGIN_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
         method = "post"
-        request = await self._process_request(url,method,data)
+        request = await self._process_request(url, method, data)
         try:
             resp_meta = request.json()["result"]["metaData"]
             self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
@@ -98,7 +106,7 @@ class RyobiApiClient:
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
         method = "get"
-        request = await self._process_request(url,method,data)
+        request = await self._process_request(url, method, data)
         try:
             result = request.json()["result"]
         except KeyError:
@@ -117,7 +125,7 @@ class RyobiApiClient:
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
         method = "get"
-        request = await self._process_request(url,method,data)        
+        request = await self._process_request(url, method, data)
         try:
             result = request.json()["result"]
         except KeyError:
@@ -135,7 +143,7 @@ class RyobiApiClient:
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
         data = {"username": self.username, "password": self.password}
         method = "get"
-        request = await self._process_request(url,method,data)          
+        request = await self._process_request(url, method, data)
         try:
             gdo_status = request.json()
             dtm = gdo_status["result"][0]["deviceTypeMap"]
@@ -143,9 +151,9 @@ class RyobiApiClient:
             self._data["door_state"] = self.DOOR_STATE[str(door_state)]
             light_state = dtm["garageLight_7"]["at"]["lightState"]["value"]
             self._data["light_state"] = self.LIGHT_STATE[str(light_state)]
-            self._data["battery_level"] = dtm["backupCharger_8"]["at"][
-                "chargeLevel"
-            ]["value"]
+            self._data["battery_level"] = dtm["backupCharger_8"]["at"]["chargeLevel"][
+                "value"
+            ]
             update_ok = True
         except KeyError:
             print("Exception while parsing answer to update device")
