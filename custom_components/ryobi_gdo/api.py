@@ -1,7 +1,7 @@
 """API interface for Ryobi GDO."""
 
 from __future__ import annotations
-
+import logging
 import json
 from typing import Any
 
@@ -21,10 +21,10 @@ from .const import (
     DEVICE_GET_ENDPOINT,
     DEVICE_SET_ENDPOINT,
     HOST_URI,
-    LOGGER,
     LOGIN_ENDPOINT,
 )
 
+LOGGER = logging.getLogger(__name__)
 
 class RyobiApiClient:
     """Class for interacting with the Ryobi Garage Door Opener API."""
@@ -57,7 +57,7 @@ class RyobiApiClient:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
-            LOGGER.debug("Connectiong to %s using %s", url, method)
+            LOGGER.debug("Connecting to %s using %s", url, method)
             try:
                 async with http_hethod(url, data=data) as response:
                     reply = await response.text()
@@ -182,6 +182,7 @@ class RyobiApiClient:
     async def send_message(self, command, value):
         """Send message to API."""
         url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
+        LOGGER.debug("Connecting to %s", url)
         async with websockets.connect(url) as websocket:
             try:
                 auth_mssg = json.dumps(
@@ -192,6 +193,7 @@ class RyobiApiClient:
                         "params": {"varName": self.username, "apiKey": self.api_key},
                     }
                 )
+                LOGGER.debug("Sending websocket authentication.")
                 websocket.send(auth_mssg)
                 websocket.recv()
             except Exception as ex:
@@ -213,6 +215,8 @@ class RyobiApiClient:
                         },
                     }
                 )
+                LOGGER.debug("Sending command: %s value: %s", command, value)
+                LOGGER.debug("Full message: %s", pay_load)
                 websocket.send(pay_load)
                 pay_load = ""
                 websocket.recv()

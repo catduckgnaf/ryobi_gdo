@@ -1,4 +1,5 @@
 """Binary sensor platform for Ryobi GDO."""
+import logging
 from typing import Final, cast
 
 from homeassistant.components.binary_sensor import (
@@ -9,7 +10,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
+from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
     "park_assist": BinarySensorEntityDescription(
