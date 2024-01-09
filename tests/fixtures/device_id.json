@@ -1,0 +1,1737 @@
+{
+    "result": [
+        {
+            "_id": "65637b2b5dd81017266ada13",
+            "deviceTypeIds": [
+                "gdoMasterUnit"
+            ],
+            "activated": 0,
+            "deleted": false,
+            "enabled": true,
+            "varName": "fakedeviceID02",
+            "metaData": {
+                "name": "Door2",
+                "version": 1,
+                "icon": "/img/devices/gdo.png",
+                "description": "RYOBI Connected Garage Door Opener Master Unit",
+                "wskAuthAttempts": [
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-07 07:57:22",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-07 08:11:39",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 01:12:29",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 18:20:51",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 22:34:13",
+                        "success": true
+                    }
+                ],
+                "authCount": 42,
+                "sys": {
+                    "lastSeen": 1704762160860
+                },
+                "socketId": "66d95c4c.ip-10-0-1-44.ec2.internal.8080_fakedeviceID02"
+            },
+            "createdDate": "2023-11-26T17:06:51.359Z",
+            "deviceTypeMap": {
+                "masterUnit": {
+                    "at": {
+                        "modulesInstalled": {
+                            "varName": "modulesInstalled",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "units": "",
+                            "metaData": {
+                                "name": "Modules Installed",
+                                "description": "the number of ports that are currently occupied",
+                                "icon": "icon.png"
+                            },
+                            "max": 255,
+                            "min": 0,
+                            "defv": 0,
+                            "_id": "56f0572e474a81821adbf7b8",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 5,
+                            "lastValue": 5,
+                            "lastSet": 1704605856866
+                        },
+                        "lastSeen": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 9223372036854776000,
+                            "metaData": {
+                                "name": "Last Seen",
+                                "description": "the description",
+                                "icon": "icon.png"
+                            },
+                            "units": "",
+                            "dataType": "number",
+                            "varType": "tc_utcdate",
+                            "varName": "lastSeen",
+                            "_id": "56f0572e474a81821adbf7b7",
+                            "flags": [],
+                            "value": 1704753253220
+                        },
+                        "timeZoneOffset": {
+                            "defv": 0,
+                            "min": -12,
+                            "max": 14,
+                            "varName": "timeZoneOffset",
+                            "varType": "tc_float",
+                            "dataType": "number",
+                            "metaData": {
+                                "name": "Time Zone Offset"
+                            },
+                            "units": "hours",
+                            "_id": "56f0572e474a81821adbf7b6",
+                            "flags": [
+                                "SRV",
+                                "C",
+                                "SET"
+                            ],
+                            "value": -5
+                        },
+                        "portCount": {
+                            "defv": 7,
+                            "metaData": {
+                                "name": "Port Count"
+                            },
+                            "varName": "portCount",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "max": 255,
+                            "min": 0,
+                            "_id": "56f0572e474a81821adbf7b5",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 10,
+                            "lastValue": 10,
+                            "lastSet": 1701018411390
+                        },
+                        "serialNumber": {
+                            "varName": "serialNumber",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "units": "",
+                            "metaData": {
+                                "name": "Serial Number",
+                                "description": "",
+                                "icon": "icon.png"
+                            },
+                            "max": "",
+                            "min": "",
+                            "defv": "",
+                            "_id": "56f0572e474a81821adbf7b4",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": "00000000000001",
+                            "lastValue": "00000000000001",
+                            "lastSet": 1701018411390
+                        },
+                        "macAddress": {
+                            "varName": "macAddress",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "units": "",
+                            "metaData": {
+                                "name": "MAC Address",
+                                "description": "the description",
+                                "icon": "icon.png"
+                            },
+                            "max": "",
+                            "min": "",
+                            "defv": "",
+                            "_id": "56f0572e474a81821adbf7b3",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": "fakedeviceID02",
+                            "lastValue": "fakedeviceID02",
+                            "lastSet": 1701018411390
+                        },
+                        "appVersion": {
+                            "varName": "appVersion",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "units": "",
+                            "metaData": {
+                                "name": "WiFi FW Version",
+                                "description": "The TTI wifi Firmware Version",
+                                "icon": "icon.png"
+                            },
+                            "max": "",
+                            "min": "",
+                            "defv": "",
+                            "_id": "56f0572e474a81821adbf7b2",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": "1.0.7",
+                            "lastValue": "1.0.7",
+                            "lastSet": 1701018411390
+                        },
+                        "nwpVersion": {
+                            "varName": "nwpVersion",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "units": "",
+                            "metaData": {
+                                "name": "NWP Version",
+                                "description": "TI WiFi Network Processor Version",
+                                "icon": "icon.png"
+                            },
+                            "max": "",
+                            "min": "",
+                            "defv": "",
+                            "_id": "56f0572e474a81821adbf7b1",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": "1.0.0.10-2.4.0.2.31.1.3.0.1.1.0.3.34",
+                            "lastValue": "1.0.0.10-2.4.0.2.31.1.3.0.1.1.0.3.34",
+                            "lastSet": 1701018415442
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Master Unit",
+                        "description": "GDO Master Unit",
+                        "icon": "/img/profiles/gdo.png"
+                    }
+                },
+                "modulePort_0": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 0
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1704593437856
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 2,
+                            "lastValue": 255,
+                            "lastSet": 1704593437856
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "btSpeaker_0"
+                            ],
+                            "lastValue": [
+                                "btSpeaker_0"
+                            ],
+                            "lastSet": 1704593434449
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [],
+                            "lastValue": [],
+                            "lastSet": 1704593434449
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 0"
+                    }
+                },
+                "modulePort_1": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 1
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 255
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 1"
+                    }
+                },
+                "modulePort_2": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 2
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 255
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 2"
+                    }
+                },
+                "modulePort_3": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 3
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1704605855665
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 1,
+                            "lastValue": 255,
+                            "lastSet": 1704605855665
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "parkAssistLaser_3"
+                            ],
+                            "lastValue": [
+                                "parkAssistLaser_3"
+                            ],
+                            "lastSet": 1704605850276
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [],
+                            "lastValue": [],
+                            "lastSet": 1704605850276
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 3"
+                    }
+                },
+                "modulePort_4": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 4
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 255
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 4"
+                    }
+                },
+                "modulePort_5": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 5
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 255
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 5"
+                    }
+                },
+                "modulePort_6": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 6
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 255
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 6"
+                    }
+                },
+                "modulePort_7": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 7
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1701018417486
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 5,
+                            "lastValue": 255,
+                            "lastSet": 1701018417486
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "garageDoor_7",
+                                "garageLight_7"
+                            ]
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "GDO.DoorOpens.__varName",
+                                "GDO.DoorCloses.__varName",
+                                "GDO.DoorOpenLongerThan.__varName",
+                                "GDO.DoorOpenAfter.__varName",
+                                "GDO.MotionSensor.__varName"
+                            ]
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 7"
+                    }
+                },
+                "modulePort_8": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 8
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1701018420474
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 6,
+                            "lastValue": 255,
+                            "lastSet": 1701018420474
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "backupCharger_8"
+                            ]
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 8"
+                    }
+                },
+                "modulePort_9": {
+                    "at": {
+                        "portId": {
+                            "defv": 0,
+                            "min": 0,
+                            "max": 255,
+                            "metaData": {
+                                "name": "Port Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "portId",
+                            "_id": "56f0572e474a81821adbf7af",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 9
+                        },
+                        "portStatus": {
+                            "max": false,
+                            "min": false,
+                            "defv": false,
+                            "metaData": {
+                                "name": "Port Status"
+                            },
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "portStatus",
+                            "_id": "56f0572e474a81821adbf7ae",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1701018420475
+                        },
+                        "moduleId": {
+                            "max": 0,
+                            "min": 0,
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Module Type Id"
+                            },
+                            "dataType": "number",
+                            "varType": "tc_uint8",
+                            "varName": "moduleId",
+                            "_id": "56f0572e474a81821adbf7ad",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 7,
+                            "lastValue": 255,
+                            "lastSet": 1701018420475
+                        },
+                        "moduleProfiles": {
+                            "max": [],
+                            "min": [],
+                            "defv": [],
+                            "metaData": {
+                                "name": "Module Profile VarName(s)"
+                            },
+                            "dataType": "object",
+                            "varType": "tc_array",
+                            "varName": "moduleProfiles",
+                            "_id": "56f0572e474a81821adbf7ac",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": [
+                                "wifiModule_9"
+                            ]
+                        },
+                        "triggerTemplateVarNames": {
+                            "defv": [],
+                            "varName": "triggerTemplateVarNames",
+                            "varType": "tc_array",
+                            "dataType": "object",
+                            "units": "",
+                            "metaData": {
+                                "name": "Trigger Template VarNames",
+                                "description": "varnames of trigger templates that the module in this port uses",
+                                "icon": "icon.png"
+                            },
+                            "max": [],
+                            "min": [],
+                            "_id": "56f0572e474a81821adbf7ab",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": []
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Module Port 9"
+                    }
+                },
+                "garageDoor_7": {
+                    "at": {
+                        "heightUnits": {
+                            "varName": "heightUnits",
+                            "varType": "tc_bool",
+                            "defv": false,
+                            "dataType": "boolean",
+                            "units": "",
+                            "metaData": {
+                                "name": "Units Display"
+                            },
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false
+                        },
+                        "motionSensor": {
+                            "varName": "motionSensor",
+                            "varType": "tc_bool",
+                            "defv": false,
+                            "dataType": "boolean",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door Motion Sensor"
+                            },
+                            "flags": [
+                                "C",
+                                "SERV"
+                            ],
+                            "value": false,
+                            "lastValue": true,
+                            "lastSet": 1704759471176
+                        },
+                        "alarmState": {
+                            "varName": "alarmState",
+                            "varType": "tc_bool",
+                            "defv": false,
+                            "dataType": "boolean",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door Alarm State"
+                            },
+                            "flags": [
+                                "C",
+                                "SERV"
+                            ],
+                            "value": false,
+                            "lastValue": false,
+                            "lastSet": 1704752334408
+                        },
+                        "motorStatus": {
+                            "varName": "motorStatus",
+                            "varType": "tc_uint8",
+                            "defv": 0,
+                            "dataType": "number",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door Motor Status"
+                            },
+                            "flags": [
+                                "C",
+                                "SERV"
+                            ],
+                            "value": 1,
+                            "lastValue": 1,
+                            "lastSet": 1701018420558
+                        },
+                        "vacationMode": {
+                            "varName": "vacationMode",
+                            "varType": "tc_bool",
+                            "defv": false,
+                            "dataType": "boolean",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door Vacation Mode"
+                            },
+                            "enum": [
+                                "Disabled",
+                                "Enabled"
+                            ],
+                            "flags": [
+                                "C",
+                                "SERV"
+                            ],
+                            "value": false,
+                            "lastValue": false,
+                            "lastSet": 1701018434499
+                        },
+                        "sensorFlag": {
+                            "varName": "sensorFlag",
+                            "varType": "tc_bool",
+                            "defv": false,
+                            "dataType": "boolean",
+                            "units": "",
+                            "metaData": {
+                                "name": "Safety Sensor Triggered"
+                            },
+                            "flags": [
+                                "C",
+                                "SERV"
+                            ],
+                            "value": false,
+                            "lastValue": false,
+                            "lastSet": 1704746092720
+                        },
+                        "opMode": {
+                            "varName": "opMode",
+                            "varType": "tc_uint8",
+                            "defv": 0,
+                            "dataType": "number",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door Operation Mode"
+                            },
+                            "enum": [
+                                "Standard",
+                                "Pre-Lockout",
+                                "Lockout"
+                            ],
+                            "max": 5,
+                            "min": 0,
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 0,
+                            "lastValue": 0,
+                            "lastSet": 1704653246253
+                        },
+                        "doorState": {
+                            "varName": "doorState",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "units": "",
+                            "metaData": {
+                                "name": "Garage Door State"
+                            },
+                            "defv": 0,
+                            "enum": [
+                                "Closed",
+                                "Open",
+                                "Closing",
+                                "Opening",
+                                "Fault"
+                            ],
+                            "max": 4,
+                            "min": 0,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": 0,
+                            "lastValue": 0,
+                            "lastSet": 1704752342336
+                        },
+                        "doorPercentOpen": {
+                            "varName": "doorPercentOpen",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "defv": -1,
+                            "metaData": {
+                                "name": "Garage Door Percent Open"
+                            },
+                            "max": 100,
+                            "min": -1,
+                            "flags": [
+                                "C"
+                            ],
+                            "value": -1
+                        },
+                        "doorPosition": {
+                            "varName": "doorPosition",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Garage Door Position"
+                            },
+                            "max": 180,
+                            "min": 0,
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 0,
+                            "lastValue": 0,
+                            "lastSet": 1704752343911
+                        },
+                        "maxDoorPosition": {
+                            "varName": "maxDoorPosition",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "defv": 0,
+                            "metaData": {
+                                "name": "Uppermost Garage Door Position"
+                            },
+                            "max": 180,
+                            "min": 0,
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 87,
+                            "lastValue": 87,
+                            "lastSet": 1701018420558
+                        },
+                        "presetPosition": {
+                            "varName": "presetPosition",
+                            "metaData": {
+                                "name": "Preset Position"
+                            },
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "defv": 0,
+                            "units": "inches",
+                            "max": 72,
+                            "min": 0,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": 0,
+                            "lastValue": 0
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "icon": "/img/profiles/gdo.png",
+                        "name": "GDO Door 200"
+                    }
+                },
+                "garageLight_7": {
+                    "at": {
+                        "lightState": {
+                            "varName": "lightState",
+                            "varType": "tc_bool",
+                            "dataType": "boolean",
+                            "units": "off,on",
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Overhead Light",
+                                "name": "Light"
+                            },
+                            "max": true,
+                            "min": false,
+                            "defv": false,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": false,
+                            "lastValue": true,
+                            "lastSet": 1704759619032
+                        },
+                        "lightTimer": {
+                            "varName": "lightTimer",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "units": "",
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Overhead Light Timer",
+                                "name": "Light Timer"
+                            },
+                            "max": 255,
+                            "min": 0,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "lastValue": 3,
+                            "value": 3,
+                            "lastSet": 1701018420558
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "GDO Light"
+                    }
+                },
+                "wifiModule_9": {
+                    "at": {
+                        "macAddress": {
+                            "varName": "macAddress",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "metaData": {
+                                "name": "WiFi MAC Address"
+                            },
+                            "defv": "",
+                            "flags": {
+                                "C": true
+                            },
+                            "value": ""
+                        },
+                        "rssi": {
+                            "varName": "rssi",
+                            "varType": "tc_int8",
+                            "dataType": "number",
+                            "metaData": {
+                                "name": "RSSI Value"
+                            },
+                            "defv": -50,
+                            "flags": {
+                                "C": true
+                            },
+                            "value": -50
+                        },
+                        "ipAddr": {
+                            "varName": "ipAddr",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "metaData": {
+                                "name": "IP Address"
+                            },
+                            "defv": "0.0.0.0",
+                            "flags": {
+                                "C": true
+                            },
+                            "value": "0.0.0.0"
+                        },
+                        "ssid": {
+                            "varName": "ssid",
+                            "varType": "tc_string",
+                            "dataType": "string",
+                            "metaData": {
+                                "name": "SSID Value"
+                            },
+                            "defv": "?",
+                            "flags": {
+                                "C": true
+                            },
+                            "value": "?"
+                        },
+                        "id": {
+                            "varName": "id",
+                            "varType": "tc_int8",
+                            "dataType": "number",
+                            "metaData": {
+                                "name": "ID"
+                            },
+                            "defv": 0,
+                            "flags": {
+                                "C": true
+                            },
+                            "value": 0
+                        },
+                        "portInfoReq": {
+                            "varName": "portInfoReq",
+                            "varType": "tc_int8",
+                            "dataType": "number",
+                            "metaData": {
+                                "name": "Port Info Req"
+                            },
+                            "defv": 0,
+                            "flags": {
+                                "C": true
+                            },
+                            "value": 0
+                        },
+                        "serialNum": {
+                            "varName": "serialNum",
+                            "varType": "tc_int8",
+                            "dataType": "number",
+                            "metaData": {
+                                "name": "Serial Number"
+                            },
+                            "defv": 0,
+                            "flags": {
+                                "C": true
+                            },
+                            "value": 0
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "name": "Wifi Module Status"
+                    }
+                },
+                "backupCharger_8": {
+                    "at": {
+                        "chargeLevel": {
+                            "varName": "chargeLevel",
+                            "varType": "tc_int8",
+                            "dataType": "number",
+                            "units": "%",
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Level of battery charge",
+                                "name": "Charge Level",
+                                "messageType": "0x11"
+                            },
+                            "enum": [
+                                "no battery",
+                                0,
+                                25,
+                                50,
+                                75,
+                                100
+                            ],
+                            "max": 100,
+                            "min": -1,
+                            "defv": 0,
+                            "flags": [
+                                "C"
+                            ],
+                            "value": 0
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "icon": "/img/profiles/gdo.png",
+                        "description": "GDO Main Unit",
+                        "name": "Backup Charger"
+                    }
+                },
+                "btSpeaker_0": {
+                    "at": {
+                        "micEnable": {
+                            "defv": false,
+                            "min": false,
+                            "max": true,
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Toggle Microphone",
+                                "name": "Microphone"
+                            },
+                            "units": "disabled,enabled",
+                            "enum": [
+                                "disabled",
+                                "enabled"
+                            ],
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "micEnable",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false,
+                            "lastValue": false
+                        },
+                        "moduleState": {
+                            "defv": false,
+                            "min": false,
+                            "max": true,
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Power on/standby state of module",
+                                "name": "Module State"
+                            },
+                            "units": "standby,on",
+                            "enum": [
+                                "standby",
+                                "on"
+                            ],
+                            "dataType": "boolean",
+                            "varType": "tc_bool",
+                            "varName": "moduleState",
+                            "flags": [
+                                "C"
+                            ],
+                            "value": false,
+                            "lastValue": false
+                        }
+                    },
+                    "ac": {
+                        "undefined": {
+                            "params": {}
+                        }
+                    },
+                    "metaData": {
+                        "icon": "/img/profiles/bluetooth_speaker.png",
+                        "description": "Bluetooth speaker",
+                        "name": "Bluetooth Speaker"
+                    }
+                },
+                "parkAssistLaser_3": {
+                    "at": {
+                        "moduleState": {
+                            "varName": "moduleState",
+                            "varType": "tc_bool",
+                            "dataType": "boolean",
+                            "units": "standby,on",
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Power on/standby state of module",
+                                "name": "Module State"
+                            },
+                            "max": true,
+                            "min": false,
+                            "defv": false,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": false,
+                            "lastValue": false,
+                            "lastSet": 1704752338740
+                        },
+                        "autoOn": {
+                            "varName": "autoOn",
+                            "varType": "tc_bool",
+                            "dataType": "boolean",
+                            "enum": [
+                                "disabled",
+                                "enabled"
+                            ],
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "Auto-On state",
+                                "name": "Auto-On"
+                            },
+                            "max": true,
+                            "min": false,
+                            "defv": false,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": true,
+                            "lastValue": false,
+                            "lastSet": 1704753259661
+                        },
+                        "laserTimer": {
+                            "varName": "laserTimer",
+                            "varType": "tc_uint8",
+                            "dataType": "number",
+                            "units": "minutes",
+                            "metaData": {
+                                "icon": "icon.png",
+                                "description": "On-time for the laser",
+                                "name": "Timer"
+                            },
+                            "max": 255,
+                            "min": 0,
+                            "defv": 5,
+                            "flags": [
+                                "C",
+                                "SET"
+                            ],
+                            "value": 3,
+                            "lastValue": 3,
+                            "lastSet": 1704605859544
+                        }
+                    },
+                    "ac": {},
+                    "metaData": {
+                        "icon": "/img/profiles/park_assist.png",
+                        "description": "Parking assist via object detection",
+                        "name": "Park Assist Laser"
+                    }
+                }
+            }
+        }
+    ]
+}

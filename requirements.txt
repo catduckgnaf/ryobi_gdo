@@ -1,2 +1,4 @@
-homeassistant>=2023.1.0
+homeassistant>=2024.1.0
 pip>=21.0,<23.4
+ruff
+websockets

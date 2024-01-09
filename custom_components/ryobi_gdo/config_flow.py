@@ -8,7 +8,7 @@ from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
 
 from .api import RyobiApiClient
-from .const import DOMAIN, CONF_DEVICE_ID
+from .const import CONF_DEVICE_ID, DOMAIN
 
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):

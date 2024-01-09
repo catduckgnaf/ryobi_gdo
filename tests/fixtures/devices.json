@@ -1,0 +1,112 @@
+{
+    "result": [
+        {
+            "_id": "65637a5bfa8bb7a9fae5c405",
+            "deviceTypeIds": [
+                "gdoMasterUnit"
+            ],
+            "activated": 0,
+            "deleted": false,
+            "enabled": true,
+            "varName": "fakedeviceID01",
+            "metaData": {
+                "name": "Door1",
+                "version": 1,
+                "icon": "/img/devices/gdo.png",
+                "description": "RYOBI Connected Garage Door Opener Master Unit",
+                "wskAuthAttempts": [
+                    {
+                        "varName": "fakedeviceID01",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-07 15:41:31",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID01",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-07 15:43:36",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID01",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 01:15:17",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID01",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 18:18:27",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID01",
+                        "apiKey": "1234567890",
+                        "ts": "2024-01-08 22:36:29",
+                        "success": true
+                    }
+                ],
+                "authCount": 42,
+                "sys": {
+                    "lastSeen": 1704759721040
+                },
+                "socketId": "5bc6fc1c.ip-10-0-1-239.ec2.internal.8080_fakedeviceID01"
+            },
+            "createdDate": "2023-11-26T17:03:23.090Z"
+        },
+        {
+            "_id": "65637b2b5dd81017266ada13",
+            "deviceTypeIds": [
+                "gdoMasterUnit"
+            ],
+            "activated": 0,
+            "deleted": false,
+            "enabled": true,
+            "varName": "fakedeviceID02",
+            "metaData": {
+                "name": "Door2",
+                "version": 1,
+                "icon": "/img/devices/gdo.png",
+                "description": "RYOBI Connected Garage Door Opener Master Unit",
+                "wskAuthAttempts": [
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "78e84213c1f1468891233b1",
+                        "ts": "2024-01-07 07:57:22",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "78e84213c1f1468891233b1",
+                        "ts": "2024-01-07 08:11:39",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "78e84213c1f1468891233b1",
+                        "ts": "2024-01-08 01:12:29",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "78e84213c1f1468891233b1",
+                        "ts": "2024-01-08 18:20:51",
+                        "success": true
+                    },
+                    {
+                        "varName": "fakedeviceID02",
+                        "apiKey": "78e84213c1f1468891233b1",
+                        "ts": "2024-01-08 22:34:13",
+                        "success": true
+                    }
+                ],
+                "authCount": 42,
+                "sys": {
+                    "lastSeen": 1704759910074
+                },
+                "socketId": "66d95c4c.ip-10-0-1-44.ec2.internal.8080_fakedeviceID02"
+            },
+            "createdDate": "2023-11-26T17:06:51.359Z"
+        }
+    ]
+}

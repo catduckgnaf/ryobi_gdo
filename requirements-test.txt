@@ -10,3 +10,4 @@ pytest-cov>=3.0
 pytest-homeassistant-custom-component>=0.12
 tzdata
 ruff~=0.1
+aioresponses
