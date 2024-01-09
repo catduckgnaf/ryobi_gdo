@@ -191,12 +191,12 @@ class RyobiApiClient:
                     }
                 )
                 LOGGER.debug("Sending websocket authentication.")
-                websocket.send(auth_mssg)
-                reply = websocket.recv()
+                await websocket.send(auth_mssg)
+                reply = await websocket.recv()
                 LOGGER.debug("Websocket auth reply: %s", reply)
             except Exception as ex:
                 LOGGER.error("Exception during websocket authentification: %s", ex)
-                websocket.close()
+                await websocket.close()
                 return
 
             try:
@@ -215,12 +215,12 @@ class RyobiApiClient:
                 )
                 LOGGER.debug("Sending command: %s value: %s", command, value)
                 LOGGER.debug("Full message: %s", pay_load)
-                websocket.send(pay_load)
+                await websocket.send(pay_load)
                 pay_load = ""
-                reply = websocket.recv()
+                reply = await websocket.recv()
                 LOGGER.debug("Websocket command reply: %s", reply)
             except Exception as ex:
                 LOGGER.error("Exception during sending message: %s", ex)
-                websocket.close()
+                await websocket.close()
                 return
-        websocket.close()
+        await websocket.close()
