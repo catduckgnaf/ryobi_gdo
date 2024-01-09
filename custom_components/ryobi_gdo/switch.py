@@ -24,9 +24,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a ryobi switch."""
 
-    def __init__(
-        self, hass, config_entry: ConfigEntry, coordinator: str
-    ):
+    def __init__(self, hass, config_entry: ConfigEntry, coordinator: str):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
@@ -56,12 +54,12 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             return True
         return False
 
-    async def turn_off(self, **kwargs: Any):
+    async def async_turn_off(self, **kwargs: Any):
         """Turn off light."""
         LOGGER.debug("Turning off light")
         self.coordinator.send_message("lightState", False)
 
-    async def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn on light."""
         LOGGER.debug("Turning on light")
         self.coordinator.send_message("lightState", True)
