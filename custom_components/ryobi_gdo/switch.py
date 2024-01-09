@@ -13,6 +13,7 @@ from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
 
 LOGGER = logging.getLogger(__name__)
 
+
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the OpenEVSE switches."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]

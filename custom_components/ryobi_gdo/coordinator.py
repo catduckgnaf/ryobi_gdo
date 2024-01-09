@@ -1,7 +1,8 @@
 """DataUpdateCoordinator for ryobi_gdo."""
 from __future__ import annotations
-import logging
+
 from datetime import timedelta
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
@@ -12,6 +13,7 @@ from .api import RyobiApiClient
 from .const import CONF_DEVICE_ID
 
 LOGGER = logging.getLogger(__name__)
+
 
 class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
     """Class to manage fetching data from the API."""

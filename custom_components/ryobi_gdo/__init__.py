@@ -1,7 +1,8 @@
 """Ryobi component."""
 from __future__ import annotations
-import logging
+
 import asyncio
+import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import Config, HomeAssistant
@@ -11,6 +12,7 @@ from .const import COORDINATOR, DOMAIN, ISSUE_URL, PLATFORMS, VERSION
 from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
+
 
 async def async_setup(  # pylint: disable-next=unused-argument
     hass: HomeAssistant, config: Config

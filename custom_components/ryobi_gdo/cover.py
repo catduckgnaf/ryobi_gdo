@@ -1,6 +1,7 @@
 """Ryobi platform for the cover component."""
 
 from __future__ import annotations
+
 import logging
 from typing import Final
 

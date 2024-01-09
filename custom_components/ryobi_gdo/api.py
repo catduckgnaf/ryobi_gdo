@@ -1,8 +1,9 @@
 """API interface for Ryobi GDO."""
 
 from __future__ import annotations
-import logging
+
 import json
+import logging
 from typing import Any
 
 import aiohttp  # type: ignore
@@ -17,14 +18,10 @@ from homeassistant.const import (
     STATE_OPENING,
 )
 
-from .const import (
-    DEVICE_GET_ENDPOINT,
-    DEVICE_SET_ENDPOINT,
-    HOST_URI,
-    LOGIN_ENDPOINT,
-)
+from .const import DEVICE_GET_ENDPOINT, DEVICE_SET_ENDPOINT, HOST_URI, LOGIN_ENDPOINT
 
 LOGGER = logging.getLogger(__name__)
+
 
 class RyobiApiClient:
     """Class for interacting with the Ryobi Garage Door Opener API."""
