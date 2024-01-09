@@ -127,7 +127,7 @@ class RyobiApiClient:
         method = "get"
         request = await self._process_request(url, method, data)
         try:
-            result = request.json()["result"]
+            result = request["result"]
         except KeyError:
             return devices
         if len(result) == 0:
