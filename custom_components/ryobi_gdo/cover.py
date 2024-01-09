@@ -28,7 +28,7 @@ SUPPORTED_FEATURES = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the OpenEVSE switches."""
+    """Set up the cover entities."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
 
     covers = []
