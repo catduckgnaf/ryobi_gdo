@@ -21,7 +21,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
 
 
 async def async_setup_entry(hass, entry, async_add_devices):
-    """Setup binary_sensor platform."""
+    """Define the binary_sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
 
     binary_sensors = []

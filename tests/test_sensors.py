@@ -1,6 +1,5 @@
 """Test Ryobi sensors."""
 
-import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ryobi_gdo.const import DOMAIN

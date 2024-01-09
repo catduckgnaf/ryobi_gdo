@@ -1,7 +1,7 @@
 # pylint: disable=protected-access,redefined-outer-name
 """Global fixtures for integration."""
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
 from aioresponses import aioresponses
 import pytest

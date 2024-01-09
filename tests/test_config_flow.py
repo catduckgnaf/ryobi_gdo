@@ -3,12 +3,10 @@
 from unittest.mock import patch
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ryobi_gdo.const import DOMAIN
-from homeassistant import config_entries, data_entry_flow, setup
-from homeassistant.const import CONF_NAME
-from homeassistant.data_entry_flow import FlowResult, FlowResultType
+from homeassistant import config_entries, setup
+from homeassistant.data_entry_flow import FlowResultType
 
 
 @pytest.mark.parametrize(
