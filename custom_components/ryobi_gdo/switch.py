@@ -1,5 +1,6 @@
 """Ryobi platform for the switch component."""
 
+import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
@@ -8,7 +9,9 @@ from homeassistant.const import STATE_ON
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
+from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -57,9 +60,9 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any):
         """Turn off light."""
         LOGGER.debug("Turning off light")
-        self.coordinator.send_command("lightState", False)
+        await self.coordinator.send_command("lightState", False)
 
     async def async_turn_on(self, **kwargs):
         """Turn on light."""
         LOGGER.debug("Turning on light")
-        self.coordinator.send_command("lightState", True)
+        await self.coordinator.send_command("lightState", True)

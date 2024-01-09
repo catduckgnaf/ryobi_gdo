@@ -1,5 +1,4 @@
 """Constants for ryobi_gdo."""
-import logging
 
 NAME = "Ryobi GDO"
 DOMAIN = "ryobi_gdo"
@@ -7,7 +6,6 @@ VERSION = "0.1.0"
 ATTRIBUTION = "Data provided by Ryobi"
 ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 
-LOGGER = logging.getLogger(__name__)
 PLATFORMS = ["cover", "switch", "sensor", "binary_sensor"]
 
 HOST_URI = "tti.tiwiconnect.com"

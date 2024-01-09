@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Final
 
 from homeassistant.components.cover import (
@@ -14,7 +15,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
+from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 COVER_TYPES: Final[dict[str, CoverEntityDescription]] = {
     "garage_door": CoverEntityDescription(
