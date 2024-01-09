@@ -3,17 +3,11 @@
 from __future__ import annotations
 
 import json
-
-import requests
 from typing import Any
-import websocket
 
 import aiohttp  # type: ignore
-from aiohttp.client_exceptions import (
-    ContentTypeError,
-    ServerTimeoutError,
-    ServerConnectionError,
-)
+from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
+import websockets
 
 from homeassistant.const import (
     STATE_CLOSED,
@@ -29,7 +23,6 @@ from .const import (
     HOST_URI,
     LOGGER,
     LOGIN_ENDPOINT,
-    REQUEST_TIMEOUT,
 )
 
 
@@ -57,7 +50,6 @@ class RyobiApiClient:
         self.battery_level = None
         self.api_key = None
         self._data = {}
-        self._connection = websocket.create_connection
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
@@ -121,7 +113,7 @@ class RyobiApiClient:
 
     async def get_devices(self) -> list:
         """Return list of devices found."""
-        devices = []
+        devices = {}
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
         method = "get"
@@ -134,7 +126,7 @@ class RyobiApiClient:
             LOGGER.error("API error: empty result")
         else:
             for data in result:
-                devices.append(data)
+                devices[data["varName"]] = data["metaData"]["name"]
         return devices
 
     async def update(self) -> bool:
@@ -145,8 +137,7 @@ class RyobiApiClient:
         method = "get"
         request = await self._process_request(url, method, data)
         try:
-            gdo_status = request
-            dtm = gdo_status["result"][0]["deviceTypeMap"]
+            dtm = request["result"][0]["deviceTypeMap"]
             door_state = dtm["garageDoor_7"]["at"]["doorState"]["value"]
             self._data["door_state"] = self.DOOR_STATE[str(door_state)]
             light_state = dtm["garageLight_7"]["at"]["lightState"]["value"]
@@ -154,9 +145,14 @@ class RyobiApiClient:
             self._data["battery_level"] = dtm["backupCharger_8"]["at"]["chargeLevel"][
                 "value"
             ]
+            self._data["wifi_rssi"] = dtm["wifiModule_9"]["at"]["rssi"]["value"]
+            self._data["park_assist"] = dtm["parkAssistLaser_3"]["at"]["moduleState"][
+                "value"
+            ]
             update_ok = True
-        except KeyError:
-            LOGGER.error("Exception while parsing answer to update device")
+            LOGGER.debug("Data: %s", self._data)
+        except KeyError as error:
+            LOGGER.error("Exception while parsing answer to update device: %s", error)
         return update_ok
 
     def get_door_status(self):
@@ -185,12 +181,9 @@ class RyobiApiClient:
 
     async def send_message(self, command, value):
         """Send message to API."""
-        ws_auth = False
-        for attempt in range(5):
+        url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
+        async with websockets.connect(url) as websocket:
             try:
-                websocket = self._connection(
-                    f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}", timeout=REQUEST_TIMEOUT
-                )
                 auth_mssg = json.dumps(
                     {
                         "jsonrpc": "2.0",
@@ -204,31 +197,27 @@ class RyobiApiClient:
             except Exception as ex:
                 LOGGER.error("Exception during websocket authentification: %s", ex)
                 websocket.close()
-            else:
-                ws_auth = True
-                break
-        if ws_auth:
-            for attempt in range(5):
-                try:
-                    pay_load = json.dumps(
-                        {
-                            "jsonrpc": "2.0",
-                            "method": "gdoModuleCommand",
-                            "params": {
-                                "msgType": 16,
-                                "moduleType": 5,
-                                "portId": 7,
-                                "moduleMsg": {command: value},
-                                "topic": self.device_id,
-                            },
-                        }
-                    )
-                    websocket.send(pay_load)
-                    pay_load = ""
-                    websocket.recv()
-                except Exception as ex:
-                    LOGGER.error("Exception during sending message: %s", ex)
-                    websocket.close()
-                else:
-                    break
+                return
+
+            try:
+                pay_load = json.dumps(
+                    {
+                        "jsonrpc": "2.0",
+                        "method": "gdoModuleCommand",
+                        "params": {
+                            "msgType": 16,
+                            "moduleType": 5,
+                            "portId": 7,
+                            "moduleMsg": {command: value},
+                            "topic": self.device_id,
+                        },
+                    }
+                )
+                websocket.send(pay_load)
+                pay_load = ""
+                websocket.recv()
+            except Exception as ex:
+                LOGGER.error("Exception during sending message: %s", ex)
+                websocket.close()
+                return
         websocket.close()

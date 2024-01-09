@@ -23,9 +23,9 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         self.hass = hass
         self._data = {}
         self._client = RyobiApiClient(
-            config.data.get[CONF_USERNAME],
-            config.data.get[CONF_PASSWORD],
-            config.data.get[CONF_DEVICE_ID],
+            config.data.get(CONF_USERNAME),
+            config.data.get(CONF_PASSWORD),
+            config.data.get(CONF_DEVICE_ID),
         )
 
         LOGGER.debug("Data will be update every %s", self.interval)
@@ -36,7 +36,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         """Return data."""
         result = await self._client.update()
         if result:
-            self._data = await self._client._data
+            self._data = self._client._data
             return self._data
         raise UpdateFailed()
 

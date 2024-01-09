@@ -1,0 +1,113 @@
+{
+    "result": {
+        "_id": "1234567890123456789",
+        "notificationTransports": [],
+        "activated": 0,
+        "deleted": false,
+        "enabled": true,
+        "varName": "user@email.mail",
+        "metaData": {
+            "givenName": "",
+            "surName": "",
+            "companyName": "",
+            "sys": {
+                "ip": "Capture Off",
+                "lastSeen": 1704741456432
+            },
+            "wskAuthAttempts": [
+                {
+                    "varName": "user@email.mail",
+                    "apiKey": "1234567890",
+                    "ts": "2024-01-07 18:26:09",
+                    "success": true
+                },
+                {
+                    "varName": "user@email.mail",
+                    "apiKey": "1234567890",
+                    "ts": "2024-01-07 18:26:09",
+                    "success": true
+                },
+                {
+                    "varName": "user@email.mail",
+                    "apiKey": "1234567890",
+                    "ts": "2024-01-08 18:55:56",
+                    "success": true
+                },
+                {
+                    "varName": "user@email.mail",
+                    "apiKey": "1234567890",
+                    "ts": "2024-01-08 19:07:50",
+                    "success": true
+                },
+                {
+                    "varName": "user@email.mail",
+                    "apiKey": "1234567890",
+                    "ts": "2024-01-08 19:17:36",
+                    "success": true
+                }
+            ],
+            "authCount": 1111,
+            "userName": "FakeUser"
+        },
+        "createdDate": "2023-06-07T22:14:04.464Z",
+        "accountOptions": {
+            "receiveSmsAlerts": false,
+            "receiveEmailAlerts": false,
+            "receiveEmailUpdates": false,
+            "alertEmail": "user@email.mail",
+            "alertPhone": "",
+            "email": "user@email.mail",
+            "productResearchInvitations": false,
+            "homeDepotPromotions": false,
+            "receiveProductInfo": false
+        },
+        "auth": {
+            "roleMap": {
+                "roleNames": [
+                    "site_user"
+                ],
+                "roleRegex": [
+                    "^GET\/api\/(auths?|sessions?|ping|notifications?|user-name)\/?$",
+                    "^PUT\/api\/(users?|auth-selectors?|user-name)\/?$",
+                    "^GET\/api\/(notifications?|triggers?|subscriptions?|endnodes?|clients?|devices?|users?|attributes?)(\\W?\\w+)*$",
+                    "^GET\/api\/users?\/(config|session)\/?$",
+                    "^(GET|PUT)\/api\/dashboards?(\\W?\\w+)*$",
+                    "^POST\/api\/(endnodes?|actions?|devices?)\/?$",
+                    "^DELETE\/api\/(devices?|endnodes?|auth-selectors?)\/?\\w+\/?$",
+                    "^(GET|PUT|POST)\/api\/users?\/config\/?$",
+                    "^GET\/api\/log",
+                    "^PUT\/api\/(endnodes?|devices?)\/\\w+\/?$",
+                    "^POST\/api\/uploads?\/image\/?$",
+                    "^(GET|POST)\/api\/(triggers?|subscriptions?)\/?$",
+                    "^(PUT|DELETE|GET)\/api\/(triggers?|subscriptions?)",
+                    "^(PUT|DELETE)\/api\/(notifications?)\/\\w+\/?$",
+                    "^(GET)\/api\/triggers\/.+\/(subscribe|unsubscribe)\/[a-zA-Z]+\/?$",
+                    "^(GET|PUT|POST)\/api\/groups",
+                    "^PUT\/api\/(auths?|users?)\/password\/?$",
+                    "^GET\/api\/websockets?\/ticket\/?$",
+                    "^PUT\/api\/rpc\/?$",
+                    "RPC\/.*",
+                    "^(GET|PUT|POST|DELETE)\/api\/tti",
+                    "^(GET|PUT|POST|DELETE)\/api\/notif-delivery",
+                    "^(GET)\/api\/notif-services?",
+                    "^PUT\/api\/attributes?\/\\w+\/garageDoor_[0-9]{1,2}\/presetPosition\/?$",
+                    "^GET\/api\/auths?\/session-token\/?$",
+                    "^(GET|DELETE)\/api\/activity-logs(\/.+){1,2}"
+                ],
+                "roleSelectors": []
+            },
+            "clientSchema": "UserAccountModel",
+            "roleIds": [
+                "5526b99fb9cf33db6189438a"
+            ],
+            "childSelectors": [
+                "65637a5bfa8bb7a9fae5c405",
+                "65637b2b5dd81017266ada13"
+            ],
+            "apiKey": "1234567890",
+            "regPin": "508c",
+            "clientUserName": "user@email.mail",
+            "createdDate": "2023-06-07T22:14:04.475Z"
+        }
+    }
+}

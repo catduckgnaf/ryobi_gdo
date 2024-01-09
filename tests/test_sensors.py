@@ -1,5 +1,6 @@
-"""Test ryobi gdo setup process."""
+"""Test Ryobi sensors."""
 
+import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ryobi_gdo.const import DOMAIN
@@ -16,7 +17,7 @@ CONFIG_DATA = {
 }
 
 
-async def test_setup_and_unload(hass, mock_device):
+async def test_sensors(hass, mock_device):
     """Test setup_entry."""
     entry = MockConfigEntry(
         domain=DOMAIN,
@@ -28,25 +29,17 @@ async def test_setup_and_unload(hass, mock_device):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
+    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 1
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
     assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
     assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 1
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
-    assert await hass.config_entries.async_unload(entries[0].entry_id)
-    await hass.async_block_till_done()
-
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
-    assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(DOMAIN)) == 0
-
-    assert await hass.config_entries.async_remove(entries[0].entry_id)
-    await hass.async_block_till_done()
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 0
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 0
-    assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 0
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 0
+    assert DOMAIN in hass.config.components
+    state = hass.states.get("sensor.ryobi_gdo_battery_level_fakedeviceid02")
+    assert state
+    assert state.state == "0"
+    state = hass.states.get("sensor.ryobi_gdo_wifi_signal_fakedeviceid02")
+    assert state
+    assert state.state == "-50"

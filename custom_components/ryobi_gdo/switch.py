@@ -24,7 +24,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RyobiSwitch(SwitchEntity):
     """Representation of a ryobi light."""
 
-    async def __init__(
+    def __init__(
         self, hass, config_entry: ConfigEntry, coordinator: RyobiDataUpdateCoordinator
     ):
         """Initialize the light."""

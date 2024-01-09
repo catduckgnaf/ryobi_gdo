@@ -11,17 +11,11 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.const import PERCENTAGE, SIGNAL_STRENGTH_DECIBELS
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    ATTR_ATTRIBUTION,
-    ATTRIBUTION,
-    CONF_DEVICE_ID,
-    COORDINATOR,
-    DOMAIN,
-)
+from .const import ATTR_ATTRIBUTION, ATTRIBUTION, CONF_DEVICE_ID, COORDINATOR, DOMAIN
 
 SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
     "battery_level": SensorEntityDescription(
@@ -31,6 +25,13 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
+    ),
+    "wifi_rssi": SensorEntityDescription(
+        name="WiFi Signal",
+        icon="mdi:wifi",
+        key="wifi_rssi",
+        native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
+        entity_category=EntityCategory.DIAGNOSTIC,
     ),
 }
 
@@ -47,7 +48,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 
 class RyobiSensor(CoordinatorEntity, SensorEntity):
-    """Implementation of an OpenEVSE sensor."""
+    """Implementation of an Ryobi sensor."""
 
     def __init__(
         self,

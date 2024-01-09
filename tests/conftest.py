@@ -1,27 +1,18 @@
 # pylint: disable=protected-access,redefined-outer-name
 """Global fixtures for integration."""
-# Fixtures allow you to replace functions with a Mock object. You can perform
-# many options via the Mock to reflect a particular behavior from the original
-# function that you want to see without going through the function's actual logic.
-# Fixtures can either be passed into tests as parameters, or if autouse=True, they
-# will automatically be used across all tests.
-#
-# Fixtures that are defined in conftest.py are available across all tests. You can also
-# define fixtures within a particular test file to scope them locally.
-#
-# pytest_homeassistant_custom_component provides some fixtures that are provided by
-# Home Assistant core. You can find those fixture definitions here:
-# https://github.com/MatthewFlamm/pytest-homeassistant-custom-component/blob/master/pytest_homeassistant_custom_component/common.py
-#
-# See here for more info: https://docs.pytest.org/en/latest/fixture.html (note that
-# pytest includes fixtures OOB which you can use as defined on this page)
+import os
 from unittest.mock import Mock, patch
 
+from aioresponses import aioresponses
 import pytest
 
-from custom_components.ryobi_gdo import IntegrationBlueprintApiClient
+from custom_components.ryobi_gdo.api import RyobiApiClient
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
+
+TEST_URL_API = "https://tti.tiwiconnect.com/api/login"
+TEST_URL_DEVICES = "https://tti.tiwiconnect.com/api/devices"
+TEST_URL_DEVICE = "https://tti.tiwiconnect.com/api/devices/fakedeviceID02"
 
 
 # This fixture enables loading custom integrations in all tests.
@@ -44,23 +35,53 @@ def skip_notifications_fixture():
         yield
 
 
-# This fixture, when used, will result in calls to async_get_data to return None. To have the call
-# return a value, we would add the `return_value=<VALUE_TO_RETURN>` parameter to the patch call.
-@pytest.fixture(name="bypass_get_data")
-def bypass_get_data_fixture():
-    """Skip calls to get data from API."""
-    with patch.object(
-        IntegrationBlueprintApiClient, "async_get_data", side_effect=Mock()
-    ):
-        yield
+@pytest.fixture(name="mock_api_key")
+def mock_api_key(mock_aioclient):
+    """Mock API call for API key endpoint."""
+    mock_aioclient.post(
+        TEST_URL_API,
+        status=200,
+        body=load_fixture("api.json"),
+        repeat=True,
+    )
+    return RyobiApiClient(username="TestUser", password="FakePassword")
 
 
-# In this fixture, we are forcing calls to async_get_data to raise an Exception. This is useful
-# for exception handling.
-@pytest.fixture(name="error_on_get_data")
-def error_get_data_fixture():
-    """Simulate error when retrieving data from API."""
-    with patch.object(
-        IntegrationBlueprintApiClient, "async_get_data", side_effect=Exception
-    ):
-        yield
+@pytest.fixture(name="mock_devices")
+def mock_devices(mock_aioclient):
+    """Mock API call for API key endpoint."""
+    mock_aioclient.get(
+        TEST_URL_DEVICES,
+        status=200,
+        body=load_fixture("devices.json"),
+        repeat=True,
+    )
+    return RyobiApiClient(username="TestUser", password="FakePassword")
+
+
+@pytest.fixture(name="mock_device")
+def mock_device(mock_aioclient):
+    """Mock API call for API key endpoint."""
+    mock_aioclient.get(
+        TEST_URL_DEVICE,
+        status=200,
+        body=load_fixture("device_id.json"),
+        repeat=True,
+    )
+    return RyobiApiClient(
+        username="TestUser", password="FakePassword", device_id="fakedeviceID02"
+    )
+
+
+@pytest.fixture
+def mock_aioclient():
+    """Fixture to mock aioclient calls."""
+    with aioresponses() as m:
+        yield m
+
+
+def load_fixture(filename):
+    """Load a fixture."""
+    path = os.path.join(os.path.dirname(__file__), "fixtures", filename)
+    with open(path, encoding="utf-8") as fptr:
+        return fptr.read()
