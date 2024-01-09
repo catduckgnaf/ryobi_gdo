@@ -84,12 +84,12 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
     async def async_close_cover(self, **kwargs):
         """Close the cover."""
         LOGGER.debug("Closing garage door")
-        await self.coordinator.close_device()
+        await self.coordinator.send_command("doorCommand", 0)
 
     async def async_open_cover(self, **kwargs):
         """Open the cover."""
         LOGGER.debug("Opening garage door")
-        await self.coordinator.open_device()
+        await self.coordinator.send_command("doorCommand", 1)
 
     @property
     def should_poll(self) -> bool:
