@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Final, Optional
+from typing import Any, Final
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
