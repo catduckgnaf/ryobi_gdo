@@ -171,13 +171,13 @@ class RyobiApiClient:
         """Get device_id."""
         return self.device_id
 
-    def close_device(self):
+    async def close_device(self):
         """Close Device."""
-        return self.send_message("doorCommand", 0)
+        return await self.send_message("doorCommand", 0)
 
-    def open_device(self):
+    async def open_device(self):
         """Open Device."""
-        return self.send_message("doorCommand", 1)
+        return await self.send_message("doorCommand", 1)
 
     async def send_message(self, command, value):
         """Send message to API."""
