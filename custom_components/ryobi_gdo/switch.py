@@ -24,9 +24,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a ryobi switch."""
 
-    def __init__(
-        self, hass, config_entry: ConfigEntry, coordinator: str
-    ):
+    def __init__(self, hass, config_entry: ConfigEntry, coordinator: str):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
