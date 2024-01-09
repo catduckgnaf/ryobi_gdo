@@ -1,5 +1,4 @@
 """Constants for ryobi_gdo."""
-import logging
 
 NAME = "Ryobi GDO"
 DOMAIN = "ryobi_gdo"
