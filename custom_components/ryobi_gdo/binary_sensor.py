@@ -77,7 +77,7 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return True if the service is on."""
         data = self.coordinator.data
-        if self._key not in data.keys():
+        if self._key not in data:
             LOGGER.info("binary_sensor [%s] not supported.", self._key)
             return None
         LOGGER.debug("binary_sensor [%s]: %s", self._name, data[self._key])
