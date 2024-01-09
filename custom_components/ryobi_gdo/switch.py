@@ -56,12 +56,12 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             return True
         return False
 
-    async def turn_off(self, **kwargs: Any):
+    async def async_turn_off(self, **kwargs: Any):
         """Turn off light."""
         LOGGER.debug("Turning off light")
         self.coordinator.send_message("lightState", False)
 
-    async def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn on light."""
         LOGGER.debug("Turning on light")
         self.coordinator.send_message("lightState", True)

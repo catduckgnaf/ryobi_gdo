@@ -81,12 +81,12 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
         """Flag supported features."""
         return SUPPORTED_FEATURES
 
-    async def close_cover(self, **kwargs):
+    async def async_close_cover(self, **kwargs):
         """Close the cover."""
         LOGGER.debug("Closing garage door")
         await self.coordinator.close_device()
 
-    async def open_cover(self, **kwargs):
+    async def async_open_cover(self, **kwargs):
         """Open the cover."""
         LOGGER.debug("Opening garage door")
         await self.coordinator.open_device()
