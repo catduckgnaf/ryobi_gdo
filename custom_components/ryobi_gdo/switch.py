@@ -6,9 +6,9 @@ from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
-from .coordinator import RyobiDataUpdateCoordinator
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -21,13 +21,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(switches, False)
 
 
-class RyobiSwitch(SwitchEntity):
-    """Representation of a ryobi light."""
+class RyobiSwitch(CoordinatorEntity, SwitchEntity):
+    """Representation of a ryobi switch."""
 
     def __init__(
-        self, hass, config_entry: ConfigEntry, coordinator: RyobiDataUpdateCoordinator
+        self, hass, config_entry: ConfigEntry, coordinator: str
     ):
-        """Initialize the light."""
+        """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
         self._attr_name = f"ryobi_gdo_light_{self.device_id}"
