@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import Any
 
 import aiohttp  # type: ignore
@@ -17,13 +18,9 @@ from homeassistant.const import (
     STATE_OPENING,
 )
 
-from .const import (
-    DEVICE_GET_ENDPOINT,
-    DEVICE_SET_ENDPOINT,
-    HOST_URI,
-    LOGGER,
-    LOGIN_ENDPOINT,
-)
+from .const import DEVICE_GET_ENDPOINT, DEVICE_SET_ENDPOINT, HOST_URI, LOGIN_ENDPOINT
+
+LOGGER = logging.getLogger(__name__)
 
 
 class RyobiApiClient:
@@ -57,7 +54,7 @@ class RyobiApiClient:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
-            LOGGER.debug("Connectiong to %s using %s", url, method)
+            LOGGER.debug("Connecting to %s using %s", url, method)
             try:
                 async with http_hethod(url, data=data) as response:
                     reply = await response.text()
@@ -131,6 +128,11 @@ class RyobiApiClient:
 
     async def update(self) -> bool:
         """Update door status from Ryobi."""
+        if self.api_key is None:
+            result = await self.get_api_key()
+            if not result:
+                LOGGER.error("Problem refreshing API key.")
+                return False
         update_ok = False
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
         data = {"username": self.username, "password": self.password}
@@ -171,17 +173,18 @@ class RyobiApiClient:
         """Get device_id."""
         return self.device_id
 
-    def close_device(self):
+    async def close_device(self):
         """Close Device."""
-        return self.send_message("doorCommand", 0)
+        return await self.send_message("doorCommand", 0)
 
-    def open_device(self):
+    async def open_device(self):
         """Open Device."""
-        return self.send_message("doorCommand", 1)
+        return await self.send_message("doorCommand", 1)
 
     async def send_message(self, command, value):
         """Send message to API."""
         url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
+        LOGGER.debug("Connecting to %s", url)
         async with websockets.connect(url) as websocket:
             try:
                 auth_mssg = json.dumps(
@@ -192,11 +195,13 @@ class RyobiApiClient:
                         "params": {"varName": self.username, "apiKey": self.api_key},
                     }
                 )
-                websocket.send(auth_mssg)
-                websocket.recv()
+                LOGGER.debug("Sending websocket authentication.")
+                await websocket.send(auth_mssg)
+                reply = await websocket.recv()
+                LOGGER.debug("Websocket auth reply: %s", reply)
             except Exception as ex:
                 LOGGER.error("Exception during websocket authentification: %s", ex)
-                websocket.close()
+                await websocket.close()
                 return
 
             try:
@@ -213,11 +218,14 @@ class RyobiApiClient:
                         },
                     }
                 )
-                websocket.send(pay_load)
+                LOGGER.debug("Sending command: %s value: %s", command, value)
+                LOGGER.debug("Full message: %s", pay_load)
+                await websocket.send(pay_load)
                 pay_load = ""
-                websocket.recv()
+                reply = await websocket.recv()
+                LOGGER.debug("Websocket command reply: %s", reply)
             except Exception as ex:
                 LOGGER.error("Exception during sending message: %s", ex)
-                websocket.close()
+                await websocket.close()
                 return
-        websocket.close()
+        await websocket.close()

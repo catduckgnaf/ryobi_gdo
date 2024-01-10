@@ -1,14 +1,17 @@
 """Ryobi platform for the switch component."""
 
+import logging
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
-from .coordinator import RyobiDataUpdateCoordinator
+from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -21,14 +24,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async_add_entities(switches, False)
 
 
-class RyobiSwitch(SwitchEntity):
-    """Representation of a ryobi light."""
+class RyobiSwitch(CoordinatorEntity, SwitchEntity):
+    """Representation of a ryobi switch."""
 
-    def __init__(
-        self, hass, config_entry: ConfigEntry, coordinator: RyobiDataUpdateCoordinator
-    ):
-        """Initialize the light."""
-        self.coordinator = coordinator
+    def __init__(self, hass, config_entry: ConfigEntry, coordinator: str):
+        """Initialize the switch."""
+        super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
         self._attr_name = f"ryobi_gdo_light_{self.device_id}"
         self._attr_unique_id = f"ryobi_gdo_light_{self.device_id}"
@@ -56,12 +57,12 @@ class RyobiSwitch(SwitchEntity):
             return True
         return False
 
-    async def turn_off(self, **kwargs: Any):
+    async def async_turn_off(self, **kwargs: Any):
         """Turn off light."""
         LOGGER.debug("Turning off light")
-        self.coordinator.send_message("lightState", False)
+        await self.coordinator.send_command("lightState", False)
 
-    async def turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs):
         """Turn on light."""
         LOGGER.debug("Turning on light")
-        self.coordinator.send_message("lightState", True)
+        await self.coordinator.send_command("lightState", True)

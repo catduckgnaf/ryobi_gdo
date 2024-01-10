@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Final
 
 from homeassistant.components.cover import (
@@ -14,7 +15,9 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN, LOGGER
+from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+
+LOGGER = logging.getLogger(__name__)
 
 COVER_TYPES: Final[dict[str, CoverEntityDescription]] = {
     "garage_door": CoverEntityDescription(
@@ -81,15 +84,15 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
         """Flag supported features."""
         return SUPPORTED_FEATURES
 
-    async def close_cover(self, **kwargs):
+    async def async_close_cover(self, **kwargs):
         """Close the cover."""
         LOGGER.debug("Closing garage door")
-        await self.coordinator.close_device()
+        await self.coordinator.send_command("doorCommand", 0)
 
-    async def open_cover(self, **kwargs):
+    async def async_open_cover(self, **kwargs):
         """Open the cover."""
         LOGGER.debug("Opening garage door")
-        await self.coordinator.open_device()
+        await self.coordinator.send_command("doorCommand", 1)
 
     @property
     def should_poll(self) -> bool:
