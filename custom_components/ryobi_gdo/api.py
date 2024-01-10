@@ -257,7 +257,7 @@ class RyobiApiClient:
 
         LOGGER.debug("Websocket connecting to %s", url)
 
-        self.ws = websockets.connect(url, extra_heders=header)
+        self.ws = websockets.connect(url, extra_headers=header)
         async with self.ws as websocket:
             try:
                 async for message in websocket:
