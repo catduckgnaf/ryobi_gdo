@@ -12,6 +12,7 @@ import websockets
 
 from homeassistant.const import (
     STATE_CLOSED,
+    STATE_CLOSING,
     STATE_OFF,
     STATE_ON,
     STATE_OPEN,
@@ -29,6 +30,7 @@ class RyobiApiClient:
     DOOR_STATE = {
         "0": STATE_CLOSED,
         "1": STATE_OPEN,
+        "2": STATE_CLOSING,
         "3": STATE_OPENING,
     }
 

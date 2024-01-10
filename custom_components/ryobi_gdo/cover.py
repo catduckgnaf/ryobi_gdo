@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Final
 
@@ -12,6 +13,7 @@ from homeassistant.components.cover import (
     CoverEntityFeature,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import STATE_CLOSED, STATE_CLOSING, STATE_OPENING
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -75,9 +77,25 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
         return self._name
 
     @property
-    def is_closed(self):
-        """Return if the cover is closed."""
-        return self.coordinator.data[self.entity_description.key]
+    def is_opening(self) -> bool | None:
+        """Return if the cover is opening or not."""
+        if self.coordinator.data[self.entity_description.key] is None:
+            return None
+        return bool(self.coordinator.data[self.entity_description.key] == STATE_OPENING)
+
+    @property
+    def is_closing(self) -> bool | None:
+        """Return if the cover is closing or not."""
+        if self.coordinator.data[self.entity_description.key] is None:
+            return None
+        return bool(self.coordinator.data[self.entity_description.key] == STATE_CLOSING)
+
+    @property
+    def is_closed(self) -> bool | None:
+        """Return if the cover is closed or not."""
+        if self.coordinator.data[self.entity_description.key] is None:
+            return None
+        return bool(self.coordinator.data[self.entity_description.key] == STATE_CLOSED)
 
     @property
     def supported_features(self):

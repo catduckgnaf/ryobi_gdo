@@ -63,10 +63,8 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         await self.coordinator.send_command("lightState", False)
         await self.coordinator._async_update_data()
 
-
     async def async_turn_on(self, **kwargs):
         """Turn on light."""
         LOGGER.debug("Turning on light")
         await self.coordinator.send_command("lightState", True)
         await self.coordinator._async_update_data()
-
