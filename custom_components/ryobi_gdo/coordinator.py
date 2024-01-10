@@ -41,6 +41,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         result = await self._client.update()
         if result:
             self._data = self._client._data
+            await self._client.ws_connect()
             return self._data
         raise UpdateFailed()
 

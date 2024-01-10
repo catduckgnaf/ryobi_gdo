@@ -6,7 +6,7 @@ import asyncio
 import json
 import logging
 from collections import abc
-from typing import Any, Callable
+from typing import Any
 
 import aiohttp  # type: ignore
 from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
