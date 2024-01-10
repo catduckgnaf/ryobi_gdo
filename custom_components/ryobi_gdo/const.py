@@ -19,3 +19,14 @@ ATTR_ATTRIBUTION = "attribution"
 
 # Configuration constants
 CONF_DEVICE_ID = "device_id"
+
+# WSS Messages
+GARAGE_UPDATE_MSG = "wskAttributeUpdateNtfy"
+WS_AUTH_OK = "authorizedWebSocket"
+WS_CMD_ACK = "result"
+WS_OK = "OK"
+
+# Socket
+SOCK_CONNECTED = "Open"
+SOCK_CLOSE = "Close"
+SOCK_ERROR = "Error"
