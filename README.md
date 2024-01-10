@@ -1,5 +1,8 @@
-*Please :star: this repo if you find it useful*
 
-# Notice
+# Notice Ryobi GDO HACS
 
-Ryobi
+New and improved!
+
+Add https://github.com/catduckgnaf/ryobi_gdo and install
+
+More documentation coming.
