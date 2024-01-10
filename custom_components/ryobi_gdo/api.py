@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+from collections import abc
 from typing import Any, Callable
 
 import aiohttp  # type: ignore
@@ -28,7 +29,6 @@ from .const import (
     LOGIN_ENDPOINT,
     SOCK_CLOSE,
     SOCK_CONNECTED,
-    SOCK_ERROR,
     WS_AUTH_OK,
     WS_CMD_ACK,
     WS_OK,
@@ -67,7 +67,7 @@ class RyobiApiClient:
         self.api_key = None
         self._data = {}
         self.ws = None
-        self.callback: Callable | None = None
+        self.callback: abc.Callable | None = None
         self.socket_state = None
 
     async def _process_request(
@@ -351,7 +351,7 @@ class RyobiApiClient:
             self.callback()
 
     async def websocket_auth(self) -> None:
-        """Authenticated with Ryobi server."""
+        """Authenticate with Ryobi server."""
         LOGGER.debug("Websocket attempting authenticate with server.")
         auth_request = {
             "jsonrpc": "2.0",
