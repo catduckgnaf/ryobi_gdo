@@ -16,7 +16,7 @@ CONFIG_DATA = {
 }
 
 
-async def test_sensors(hass, mock_device):
+async def test_sensors(hass, mock_device, mock_api_key):
     """Test setup_entry."""
     entry = MockConfigEntry(
         domain=DOMAIN,
