@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
+from collections import abc
 from typing import Any
 
 import aiohttp  # type: ignore
@@ -19,9 +21,24 @@ from homeassistant.const import (
     STATE_OPENING,
 )
 
-from .const import DEVICE_GET_ENDPOINT, DEVICE_SET_ENDPOINT, HOST_URI, LOGIN_ENDPOINT
+from .const import (
+    DEVICE_GET_ENDPOINT,
+    DEVICE_SET_ENDPOINT,
+    GARAGE_UPDATE_MSG,
+    HOST_URI,
+    LOGIN_ENDPOINT,
+    SOCK_CLOSE,
+    SOCK_CONNECTED,
+    WS_AUTH_OK,
+    WS_CMD_ACK,
+    WS_OK,
+)
 
 LOGGER = logging.getLogger(__name__)
+
+METHOD = "method"
+PARAMS = "params"
+RESULT = "result"
 
 
 class RyobiApiClient:
@@ -49,6 +66,9 @@ class RyobiApiClient:
         self.battery_level = None
         self.api_key = None
         self._data = {}
+        self.ws = None
+        self.callback: abc.Callable | None = None
+        self.socket_state = None
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
@@ -185,49 +205,169 @@ class RyobiApiClient:
 
     async def send_message(self, command, value):
         """Send message to API."""
-        url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
-        LOGGER.debug("Connecting to %s", url)
-        async with websockets.connect(url) as websocket:
-            try:
-                auth_mssg = json.dumps(
-                    {
-                        "jsonrpc": "2.0",
-                        "id": 3,
-                        "method": "srvWebSocketAuth",
-                        "params": {"varName": self.username, "apiKey": self.api_key},
-                    }
-                )
-                LOGGER.debug("Sending websocket authentication.")
-                await websocket.send(auth_mssg)
-                reply = await websocket.recv()
-                LOGGER.debug("Websocket auth reply: %s", reply)
-            except Exception as ex:
-                LOGGER.error("Exception during websocket authentification: %s", ex)
-                await websocket.close()
-                return
+        if self.socket_state != SOCK_CONNECTED:
+            LOGGER.warning("Websocket not yet connected, unable to send command.")
+            return
 
+        ws_command = {
+            "jsonrpc": "2.0",
+            "method": "gdoModuleCommand",
+            "params": {
+                "msgType": 16,
+                "moduleType": 5,
+                "portId": 7,
+                "moduleMsg": {command: value},
+                "topic": self.device_id,
+            },
+        }
+        LOGGER.debug("Sending command: %s value: %s", command, value)
+        LOGGER.debug("Full message: %s", ws_command)
+        await self.websocket_send(ws_command)
+
+    async def ws_connect(self) -> None:
+        """Connect to websocket."""
+        if self.socket_state == SOCK_CONNECTED:
+            LOGGER.debug("Websocket already connected.")
+            return True
+
+        LOGGER.debug("Websocket not connected, connecting now...")
+        await self.open_websocket()
+        await self.websocket_auth()
+        await asyncio.sleep(0.5)
+        await self.websocket_subscribe()
+
+    async def ws_disconnect(self) -> bool:
+        """Disconnect from websocket."""
+        if self.socket_state != SOCK_CONNECTED:
+            LOGGER.debug("Websocket already disconnected.")
+            return True
+        self.ws.close()
+        self.socket_state = SOCK_CLOSE
+
+    async def open_websocket(self) -> bool | None:
+        """Connect WebSocket to Ryobi Server."""
+        if self.api_key is None:
+            result = await self.get_api_key()
+            if not result:
+                LOGGER.error("Problem refreshing API key.")
+                return False
+
+        header = {"Connection": "keep-alive, Upgrade", "handshakeTimeout": "10000"}
+        url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
+
+        LOGGER.debug("Websocket connecting to %s", url)
+
+        self.ws = websockets.connect(url, extra_headers=header)
+        async with self.ws as websocket:
             try:
-                pay_load = json.dumps(
-                    {
-                        "jsonrpc": "2.0",
-                        "method": "gdoModuleCommand",
-                        "params": {
-                            "msgType": 16,
-                            "moduleType": 5,
-                            "portId": 7,
-                            "moduleMsg": {command: value},
-                            "topic": self.device_id,
-                        },
-                    }
+                async for message in websocket:
+                    self.socket_state = SOCK_CONNECTED
+                    await self._process_message(message)
+
+            except websockets.ConnectionClosed as err:
+                self.socket_state = SOCK_CLOSE
+                LOGGER.error(
+                    "Websocket closed, attempting to reconnect. Error: %s", err
                 )
-                LOGGER.debug("Sending command: %s value: %s", command, value)
-                LOGGER.debug("Full message: %s", pay_load)
-                await websocket.send(pay_load)
-                pay_load = ""
-                reply = await websocket.recv()
-                LOGGER.debug("Websocket command reply: %s", reply)
-            except Exception as ex:
-                LOGGER.error("Exception during sending message: %s", ex)
-                await websocket.close()
-                return
-        await websocket.close()
+                await self.open_websocket()
+
+    async def websocket_send(self, message: dict) -> bool:
+        """Send websocket message."""
+        json_message = json.dumps(message)
+        LOGGER.debug("Websocket sending data: %s", json_message)
+
+        try:
+            self.ws.send(json_message)
+            LOGGER.debug("Websocket message sent.")
+            return True
+        except websockets.ConnectionClosed as err:
+            self.socket_state = SOCK_CLOSE
+            LOGGER.error("Websocket error sending message: %s", err)
+        return False
+
+    async def _process_message(self, msg: dict) -> None:
+        """Process websocket data."""
+        message = json.loads(msg)
+        LOGGER.debug("Websocket data: %s", message)
+
+        if METHOD in message:
+            if message[METHOD] == GARAGE_UPDATE_MSG:
+                LOGGER.debug("Websocket garage door update message.")
+                if PARAMS in message:
+                    self.parse_message(message[PARAMS])
+
+            elif message[METHOD] == WS_AUTH_OK:
+                if message[PARAMS]["authorized"]:
+                    LOGGER.debug("Websocket API key authorized.")
+                else:
+                    LOGGER.error("Websocket API key not authorized.")
+
+        elif RESULT in message:
+            if RESULT in message[RESULT]:
+                if message[WS_CMD_ACK][RESULT] == WS_OK:
+                    LOGGER.debug("Websocket result OK.")
+            if "authorized" in message[WS_CMD_ACK]:
+                if message[WS_CMD_ACK]["authorized"]:
+                    LOGGER.debug("Websocket User authorization OK.")
+
+        else:
+            LOGGER.error("Websocket unknown message received: %s", message)
+
+    def parse_message(self, data: dict) -> None:
+        """Parse incoming updated data."""
+        if self.device_id != data["varName"]:
+            LOGGER.debug(
+                "Websocket update for %s does not match %s",
+                data["varName"],
+                self.device_id,
+            )
+            return None
+
+        for key in data:
+            if key in ["topic", "varName", "id"]:
+                continue
+
+            LOGGER.debug("Websocket parsing update for item %s: %s", key, data[key])
+
+            module_name = key.split(".")[1]
+
+            if "garageDoor" in key:
+                self._data["door_state"] = data["doorState"]["value"]
+                attributes = {}
+                for item in data[key]:
+                    attributes[module_name][item] = data[key][item]
+                self._data["door_attributes"] = attributes
+            elif "garageLight" in key:
+                self._data["light_state"] = data["light_state"]["value"]
+                attributes = {}
+                for item in data[key]:
+                    attributes[module_name][item] = data[key][item]
+                self._data["light_attributes"] = attributes
+
+            else:
+                LOGGER.error("Websocket data update unknown module: %s", key)
+
+        if self.callback is not None:
+            self.callback()
+
+    async def websocket_auth(self) -> None:
+        """Authenticate with Ryobi server."""
+        LOGGER.debug("Websocket attempting authenticate with server.")
+        auth_request = {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "srvWebSocketAuth",
+            "params": {"varName": self.username, "apiKey": self.api_key},
+        }
+        await self.websocket_send(auth_request)
+
+    async def websocket_subscribe(self) -> None:
+        """Send subscription for device updates."""
+        LOGGER.debug("Websocket subscribing to notifications for %s", self.device_id)
+        subscribe = {
+            "jsonrpc": "2.0",
+            "id": 3,
+            "method": "wskSubscribe",
+            "params": {"topic": self.device_id + ".wskAttributeUpdateNtfy"},
+        }
+        await self.websocket_send(subscribe)
