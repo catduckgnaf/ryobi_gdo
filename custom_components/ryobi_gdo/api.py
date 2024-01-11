@@ -383,7 +383,7 @@ class RyobiWebSocket:
             async with self.session.ws_connect(
                 self.url,
                 heartbeat=15,
-                header=header,
+                headers=header,
             ) as ws_client:
                 # Auth to server and subscribe to topic
                 if self._state != STATE_CONNECTED:
