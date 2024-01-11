@@ -483,7 +483,7 @@ class RyobiWebSocket:
         LOGGER.debug("Websocket sending data: %s", json_message)
 
         try:
-            self._ws_client.send_str(json_message)
+            await self._ws_client.send_str(json_message)
             LOGGER.debug("Websocket message sent.")
             return True
         except Exception as err:
