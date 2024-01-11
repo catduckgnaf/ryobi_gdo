@@ -226,7 +226,7 @@ class RyobiApiClient:
         if self.api_key is None:
             LOGGER.error("Problem refreshing API key.")
             raise APIKeyError
-                
+
         assert self.ws
         if self._ws_listening:
             LOGGER.debug("Websocket already connected.")
@@ -259,7 +259,9 @@ class RyobiApiClient:
             except RuntimeError:
                 LOGGER.info(INFO_LOOP_RUNNING)
 
-    async def _process_message(self, msg_type: str, msg: dict, error: str | None = None) -> None:
+    async def _process_message(
+        self, msg_type: str, msg: dict, error: str | None = None
+    ) -> None:
         """Process websocket data and handle websocket signaling."""
         if msg_type == SIGNAL_CONNECTION_STATE:
             if msg == STATE_CONNECTED:
@@ -279,9 +281,9 @@ class RyobiApiClient:
                     self.ws.url,
                     error,
                 )
-                self._ws_listening = False     
+                self._ws_listening = False
 
-        elif msg_type == "data":           
+        elif msg_type == "data":
             message = msg
             LOGGER.debug("Websocket data: %s", message)
 
@@ -338,7 +340,9 @@ class RyobiApiClient:
             # Garage Light updates
             elif "garageLight" in key:
                 if module_name == "lightState":
-                    self._data["light_state"] = self.LIGHT_STATE[str(data[key]["value"])]
+                    self._data["light_state"] = self.LIGHT_STATE[
+                        str(data[key]["value"])
+                    ]
                 attributes = {}
                 for item in data[key]:
                     attributes[module_name][item] = data[key][item]
@@ -347,7 +351,9 @@ class RyobiApiClient:
             # Park Assist updates
             elif "parkAssistLaser" in key:
                 if module_name == "moduleState":
-                    self._data["park_assist"] = self.LIGHT_STATE[str(data[key]["value"])]
+                    self._data["park_assist"] = self.LIGHT_STATE[
+                        str(data[key]["value"])
+                    ]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
@@ -397,7 +403,7 @@ class RyobiWebSocket:
                 headers=header,
             ) as ws_client:
                 self._ws_client = ws_client
-                
+
                 # Auth to server and subscribe to topic
                 if self._state != STATE_CONNECTED:
                     await self.websocket_auth()
