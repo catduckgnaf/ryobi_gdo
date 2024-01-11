@@ -251,7 +251,7 @@ class RyobiApiClient:
             self._loop = asyncio.get_event_loop()
             LOGGER.debug("Using new event loop...")
 
-        if self.ws.state != STATE_CONNECTED:
+        if not self._ws_listening:
             self._loop.create_task(self.ws.listen())
             pending = asyncio.all_tasks()
             try:
