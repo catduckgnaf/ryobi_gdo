@@ -1,0 +1,14 @@
+{
+    "jsonrpc": "2.0",
+    "method": "wskAttributeUpdateNtfy",
+    "params": {
+        "topic": "fakedeviceID02.wskAttributeUpdateNtfy",
+        "varName": "fakedeviceID02",
+        "garageLight_7.lightState": {
+            "value": false,
+            "lastValue": true,
+            "lastSet": 1704928909569
+        }
+    },
+    "id": 0
+}

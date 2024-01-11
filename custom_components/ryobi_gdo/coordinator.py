@@ -41,13 +41,12 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         result = await self._client.update()
         if result:
             self._data = self._client._data
-            await self._client.ws_connect()
             return self._data
         raise UpdateFailed()
 
     async def send_command(self, command, args):
         """Send command to GDO."""
-        await self._client.send_message(command, args)
+        await self._client.ws.send_message(command, args)
 
     @callback
     async def websocket_update(self):
