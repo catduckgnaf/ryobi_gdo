@@ -357,18 +357,18 @@ class RyobiWebSocket:
         self._apikey = apikey
         self._device_id = device
         self.callback: abc.Callable = callback
-        self.state = None
+        self._state = None
         self._error_reason = None
 
     @property
     def state(self) -> str | None:
         """Return the current state."""
-        return self.state
+        return self._state
 
     @state.setter
     async def state(self, value) -> None:
         """Set the state."""
-        self.state = value
+        self._state = value
         LOGGER.debug("Websocket state: %s", value)
         await self.callback(SIGNAL_CONNECTION_STATE, value, self._error_reason)
         self._error_reason = None
@@ -386,7 +386,7 @@ class RyobiWebSocket:
                 header=header,
             ) as ws_client:
                 # Auth to server and subscribe to topic
-                if self.state != STATE_CONNECTED:
+                if self._state != STATE_CONNECTED:
                     await self.websocket_auth()
                     await asyncio.sleep(0.5)
                     await self.websocket_subscribe()
@@ -395,7 +395,7 @@ class RyobiWebSocket:
                 self.failed_attempts = 0
 
                 async for message in ws_client:
-                    if self.state == STATE_STOPPED:
+                    if self._state == STATE_STOPPED:
                         break
 
                     if message.type == aiohttp.WSMsgType.TEXT:
@@ -422,7 +422,7 @@ class RyobiWebSocket:
             if self.failed_attempts >= MAX_FAILED_ATTEMPTS:
                 self._error_reason = ERROR_TOO_MANY_RETRIES
                 await RyobiWebSocket.state.fset(self, STATE_STOPPED)
-            elif self.state != STATE_STOPPED:
+            elif self._state != STATE_STOPPED:
                 retry_delay = min(2 ** (self.failed_attempts - 1) * 30, 300)
                 self.failed_attempts += 1
                 LOGGER.error(
@@ -433,19 +433,19 @@ class RyobiWebSocket:
                 await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
                 await asyncio.sleep(retry_delay)
         except Exception as error:  # pylint: disable=broad-except
-            if self.state != STATE_STOPPED:
+            if self._state != STATE_STOPPED:
                 LOGGER.exception("Unexpected exception occurred: %s", error)
                 self._error_reason = ERROR_UNKNOWN
                 await RyobiWebSocket.state.fset(self, STATE_STOPPED)
         else:
-            if self.state != STATE_STOPPED:
+            if self._state != STATE_STOPPED:
                 await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
                 await asyncio.sleep(5)
 
     async def listen(self):
         """Start the listening websocket."""
         self.failed_attempts = 0
-        while self.state != STATE_STOPPED:
+        while self._state != STATE_STOPPED:
             await self.running()
 
     async def close(self):
@@ -489,7 +489,7 @@ class RyobiWebSocket:
 
     async def send_message(self, command, value):
         """Send message to API."""
-        if self.state != STATE_CONNECTED:
+        if self._state != STATE_CONNECTED:
             LOGGER.warning("Websocket not yet connected, unable to send command.")
             return
 
