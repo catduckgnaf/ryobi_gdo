@@ -282,7 +282,7 @@ class RyobiApiClient:
                 self._ws_listening = False     
 
         elif msg_type == "data":           
-            message = json.loads(msg)
+            message = msg
             LOGGER.debug("Websocket data: %s", message)
 
             if METHOD in message:
@@ -402,7 +402,7 @@ class RyobiWebSocket:
                         break
 
                     if message.type == aiohttp.WSMsgType.TEXT:
-                        msg = message
+                        msg = message.json()
                         await self.callback("data", msg)
 
                     elif message.type == aiohttp.WSMsgType.CLOSED:
