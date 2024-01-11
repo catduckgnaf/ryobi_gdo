@@ -334,7 +334,7 @@ class RyobiApiClient:
                     self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
                 attributes = {}
                 for item in data[key]:
-                    attributes[module_name][item] = data[key][item]
+                    attributes[item] = data[key][item]
                 self._data["door_attributes"] = attributes
 
             # Garage Light updates
@@ -345,7 +345,7 @@ class RyobiApiClient:
                     ]
                 attributes = {}
                 for item in data[key]:
-                    attributes[module_name][item] = data[key][item]
+                    attributes[item] = data[key][item]
                 self._data["light_attributes"] = attributes
 
             # Park Assist updates
