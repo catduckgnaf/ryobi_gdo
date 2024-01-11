@@ -333,7 +333,7 @@ class RyobiApiClient:
                     attributes[module_name][item] = data[key][item]
                 self._data["door_attributes"] = attributes
             elif "garageLight" in key:
-                self._data["light_state"] = data["light_state"]["value"]
+                self._data["light_state"] = data["lightState"]["value"]
                 attributes = {}
                 for item in data[key]:
                     attributes[module_name][item] = data[key][item]
