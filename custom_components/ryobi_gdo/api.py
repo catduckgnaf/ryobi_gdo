@@ -501,7 +501,7 @@ class RyobiWebSocket:
                 "moduleType": 5,
                 "portId": 7,
                 "moduleMsg": {command: value},
-                "topic": self.device_id,
+                "topic": self._device_id,
             },
         }
         LOGGER.debug("Sending command: %s value: %s", command, value)
