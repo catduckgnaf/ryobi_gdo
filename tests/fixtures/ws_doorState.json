@@ -1,0 +1,14 @@
+{
+    "jsonrpc": "2.0",
+    "method": "wskAttributeUpdateNtfy",
+    "params": {
+        "topic": "fakedeviceID02.wskAttributeUpdateNtfy",
+        "varName": "fakedeviceID02",
+        "garageDoor_7.doorState": {
+            "value": 1,
+            "lastValue": 3,
+            "lastSet": 1704928824319
+        }
+    },
+    "id": 0
+}

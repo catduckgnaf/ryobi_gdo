@@ -1,0 +1,8 @@
+{
+    "jsonrpc": "2.0",
+    "result": {
+        "result": "OK",
+        "aCnt": 0
+    },
+    "id": 3
+}

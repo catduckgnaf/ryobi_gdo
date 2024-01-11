@@ -45,6 +45,9 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
             hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
 
+    # Start websocket listener
+    coordinator._client.ws_connect()
+
     return True
 
 
@@ -61,9 +64,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
         )
     )
     coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
-    result = await coordinator._client.ws_disconnect()
-    if not result:
-        LOGGER.error("Problems gracefully closing websocket.")
+    await coordinator._client.ws_disconnect()
 
     if unload_ok:
         LOGGER.debug("Successfully removed entities from the %s integration", DOMAIN)
