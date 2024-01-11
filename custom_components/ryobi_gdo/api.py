@@ -359,6 +359,7 @@ class RyobiWebSocket:
         self.callback: abc.Callable = callback
         self._state = None
         self._error_reason = None
+        self._ws_client = None
 
     @property
     def state(self) -> str | None:
@@ -385,6 +386,8 @@ class RyobiWebSocket:
                 heartbeat=15,
                 headers=header,
             ) as ws_client:
+                self._ws_client = ws_client
+                
                 # Auth to server and subscribe to topic
                 if self._state != STATE_CONNECTED:
                     await self.websocket_auth()
@@ -480,7 +483,7 @@ class RyobiWebSocket:
         LOGGER.debug("Websocket sending data: %s", json_message)
 
         try:
-            self.session.send_str(json_message)
+            self._ws_client.send_str(json_message)
             LOGGER.debug("Websocket message sent.")
             return True
         except Exception as err:
