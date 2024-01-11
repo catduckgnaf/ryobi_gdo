@@ -402,7 +402,7 @@ class RyobiWebSocket:
                         break
 
                     if message.type == aiohttp.WSMsgType.TEXT:
-                        msg = message.json()
+                        msg = message
                         await self.callback("data", msg)
 
                     elif message.type == aiohttp.WSMsgType.CLOSED:
