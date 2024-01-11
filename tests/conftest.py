@@ -6,13 +6,14 @@ from unittest.mock import patch
 from aioresponses import aioresponses
 import pytest
 
-from custom_components.ryobi_gdo.api import RyobiApiClient
+from custom_components.ryobi_gdo.api import RyobiApiClient, RyobiWebSocket
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
 TEST_URL_API = "https://tti.tiwiconnect.com/api/login"
 TEST_URL_DEVICES = "https://tti.tiwiconnect.com/api/devices"
 TEST_URL_DEVICE = "https://tti.tiwiconnect.com/api/devices/fakedeviceID02"
+TEST_WS_SERVER = "wss://tti.tiwiconnect.com/api/wsrpc"
 
 
 # This fixture enables loading custom integrations in all tests.
@@ -71,6 +72,17 @@ def mock_device(mock_aioclient):
     return RyobiApiClient(
         username="TestUser", password="FakePassword", device_id="fakedeviceID02"
     )
+
+@pytest.fixture(name="mock_ws")
+def mock_ws(mock_aioclient):
+    """Mock API call for API key endpoint."""
+    mock_aioclient.get(
+        TEST_WS_SERVER,
+        status=1000,
+        body=load_fixture("ws_auth_reply.json"),
+        repeat=True,
+    )
+    return RyobiWebSocket(None, username="TestUser", apikey="FakeAPIKey", device="fakedeviceID02")
 
 @pytest.fixture()
 def mock_ws_start():

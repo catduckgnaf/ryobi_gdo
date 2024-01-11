@@ -16,7 +16,7 @@ CONFIG_DATA = {
 }
 
 
-async def test_setup_and_unload(hass, mock_device, mock_api_key):
+async def test_setup_and_unload(hass, mock_device, mock_api_key, mock_ws):
     """Test setup_entry."""
     entry = MockConfigEntry(
         domain=DOMAIN,
