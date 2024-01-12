@@ -289,9 +289,9 @@ class RyobiApiClient:
 
             if METHOD in message:
                 if message[METHOD] == GARAGE_UPDATE_MSG:
-                    LOGGER.debug("Websocket garage door update message.")
+                    LOGGER.debug("Websocket update message.")
                     if PARAMS in message:
-                        self.parse_message(message[PARAMS])
+                        await self.parse_message(message[PARAMS])
 
                 elif message[METHOD] == WS_AUTH_OK:
                     if message[PARAMS]["authorized"]:
@@ -310,7 +310,7 @@ class RyobiApiClient:
             else:
                 LOGGER.error("Websocket unknown message received: %s", message)
 
-    def parse_message(self, data: dict) -> None:
+    async def parse_message(self, data: dict) -> None:
         """Parse incoming updated data."""
         if self.device_id != data["varName"]:
             LOGGER.debug(
@@ -334,7 +334,7 @@ class RyobiApiClient:
                     self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
                 attributes = {}
                 for item in data[key]:
-                    attributes[module_name][item] = data[key][item]
+                    attributes[item] = data[key][item]
                 self._data["door_attributes"] = attributes
 
             # Garage Light updates
@@ -345,7 +345,7 @@ class RyobiApiClient:
                     ]
                 attributes = {}
                 for item in data[key]:
-                    attributes[module_name][item] = data[key][item]
+                    attributes[item] = data[key][item]
                 self._data["light_attributes"] = attributes
 
             # Park Assist updates
@@ -359,7 +359,7 @@ class RyobiApiClient:
                 LOGGER.error("Websocket data update unknown module: %s", key)
 
         if self.callback is not None:
-            self.callback()
+            await self.callback()
 
 
 class RyobiWebSocket:
