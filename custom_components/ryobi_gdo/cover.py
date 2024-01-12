@@ -117,3 +117,11 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
     def should_poll(self) -> bool:
         """No need to poll. Coordinator notifies entity of updates."""
         return False
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Return sesnsor attributes."""
+        attrs = {}
+        if "door_attributes" in self.coordinator.data:
+            attrs.update(self.coordinator.data["door_attributes"])
+        return attrs

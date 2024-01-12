@@ -51,7 +51,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
     @callback
     async def websocket_update(self):
         """Trigger processing updated websocket data."""
-        LOGGER.debug("Websocket update.")
+        LOGGER.debug("Processing websocket data.")
         self._data = self._client._data
         coordinator = self.hass.data[DOMAIN][self.config.entry_id][COORDINATOR]
         coordinator.async_set_updated_data(self._data)

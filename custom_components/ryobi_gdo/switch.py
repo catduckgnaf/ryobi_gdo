@@ -68,3 +68,11 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         LOGGER.debug("Turning on light")
         await self.coordinator.send_command("lightState", True)
         await self.coordinator._async_update_data()
+
+    @property
+    def extra_state_attributes(self) -> dict | None:
+        """Return sesnsor attributes."""
+        attrs = {}
+        if "light_attributes" in self.coordinator.data:
+            attrs.update(self.coordinator.data["light_attributes"])
+        return attrs
