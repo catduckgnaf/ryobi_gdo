@@ -34,8 +34,10 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
+    # Start websocket listener
+    coordinator._client.ws_connect()
 
-    if not coordinator.last_update_success:
+    if not coordinator.last_update_success or not coordinator._client._ws_listening:
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
@@ -44,9 +46,6 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         hass.async_create_task(
             hass.config_entries.async_forward_entry_setup(config_entry, platform)
         )
-
-    # Start websocket listener
-    coordinator._client.ws_connect()
 
     return True
 
