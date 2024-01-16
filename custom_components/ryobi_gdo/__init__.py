@@ -39,8 +39,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
-    if not coordinator._client._ws_listening:
-        raise ConfigEntryNotReady
+##    if not coordinator._client._ws_listening:
+##        raise ConfigEntryNotReady
 
     hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
 
