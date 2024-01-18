@@ -32,15 +32,16 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     interval = 60  # Time in seconds
     coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry)
 
-    # Fetch initial data so we have data when entities subscribe
+      # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
-    # Start websocket listener
-    coordinator._client.ws_connect()
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
 ##    if not coordinator._client._ws_listening:
 ##        raise ConfigEntryNotReady
+
+    # Start websocket listener
+    coordinator._client.ws_connect()
 
     hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
 
