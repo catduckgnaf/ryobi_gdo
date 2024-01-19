@@ -349,11 +349,11 @@ class RyobiApiClient:
                 self._data["light_attributes"] = attributes
 
             # Park Assist updates
-            elif "parkAssistLaser" in key:
-                if module_name == "moduleState":
-                    self._data["park_assist"] = self.LIGHT_STATE[
-                        str(data[key]["value"])
-                    ]
+        #    elif "parkAssistLaser" in key:
+        #        if module_name == "moduleState":
+        #            self._data["park_assist"] = self.LIGHT_STATE[
+        #                str(data[key]["value"])
+        #            ]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
