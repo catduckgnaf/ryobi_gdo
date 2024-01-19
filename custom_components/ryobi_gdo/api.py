@@ -68,6 +68,15 @@ class RyobiApiClient:
         "True": STATE_ON,
     }
 
+    COMPRESSOR_STATE = {
+        "False": STATE_OFF,
+        "True": STATE_ON,
+    }
+
+    SPEAKER_STATE = {
+        "False": STATE_OFF,
+        "True": STATE_ON,
+    }
     def __init__(self, username: str, password: str, device_id: str | None = None):
         """Initialize the API object."""
         self.username = username
@@ -349,11 +358,25 @@ class RyobiApiClient:
                 self._data["light_attributes"] = attributes
 
             # Park Assist updates
-        #    elif "parkAssistLaser" in key:
-        #        if module_name == "moduleState":
-        #            self._data["park_assist"] = self.LIGHT_STATE[
-        #                str(data[key]["value"])
-        #            ]
+       #    elif "parkAssistLaser" in key:
+       #         if module_name == "moduleState":
+       #             self._data["park_assist"] = self.LIGHT_STATE[
+       #                 str(data[key]["value"])
+       #             ]
+
+       #     # Air compressor updates
+       #    elif "airCompressor" in key:
+       #         if module_name == "moduleState":
+       #             self._data["air_compressor"] = self.COMPRESSOR_STATE[
+       #                 str(data[key]["value"])
+       #             ]
+
+       #            # Bluetooth Speaker Updates
+       #    elif "bt_Speaker" in key:
+       #         if module_name == "moduleState":
+       #             self._data["bt_speaker"] = self.SPEAKER_STATE[
+       #                 str(data[key]["value"])
+       #             ]      ]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
