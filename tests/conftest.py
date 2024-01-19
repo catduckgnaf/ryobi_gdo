@@ -66,7 +66,7 @@ def mock_device(mock_aioclient):
     mock_aioclient.get(
         TEST_URL_DEVICE,
         status=200,
-        body=load_fixture("device_id.json"),
+        body=load_fixture("device_id_GDO200.json"),
         repeat=True,
     )
     return RyobiApiClient(
