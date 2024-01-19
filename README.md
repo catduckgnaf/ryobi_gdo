@@ -1,9 +1,10 @@
-Ryobi Garage Door Opener - HA Custom Component
+## Ryobi Garage Door Opener - HA Custom Component
 
 This integration will request all of the Garage Door devices linked to your Ryobi account and automatically add them into Home Assistant, through a standard config flow.
 
 The Garage Door must first be setup and added through Ryobi's app. Once you've created an account and can successfully control the garage door from the app, you can use your login details with this integration.
-Installation.
+
+## Installation.
 
 Add a custom repository in HACS, install and reboot.
 Go to intergration and search for ryobi
