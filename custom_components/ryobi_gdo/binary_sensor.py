@@ -37,7 +37,7 @@ async def async_setup_entry(hass, entry, async_add_devices):
 
 
 class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
-    """integration_blueprint binary_sensor class."""
+    """ryobi_gdo binary_sensor class."""
 
     def __init__(
         self,
