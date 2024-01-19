@@ -37,11 +37,11 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
-##    if not coordinator._client._ws_listening:
+##    if not coordinator.client._ws_listening:
 ##        raise ConfigEntryNotReady
 
     # Start websocket listener
-    coordinator._client.ws_connect()
+    coordinator.client.ws_connect()
 
     hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
 
@@ -66,7 +66,7 @@ async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> 
         )
     )
     coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
-    await coordinator._client.ws_disconnect()
+    await coordinator.client.ws_disconnect()
 
     if unload_ok:
         LOGGER.debug("Successfully removed entities from the %s integration", DOMAIN)

@@ -25,12 +25,12 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         self.config = config
         self.hass = hass
         self._data = {}
-        self._client = RyobiApiClient(
+        self.client = RyobiApiClient(
             config.data.get(CONF_USERNAME),
             config.data.get(CONF_PASSWORD),
             config.data.get(CONF_DEVICE_ID),
         )
-        self._client.callback = self.websocket_update
+        self.client.callback = self.websocket_update
 
         LOGGER.debug("Data will be update every %s", self.interval)
 
@@ -38,20 +38,20 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Return data."""
-        result = await self._client.update()
+        result = await self.client.update()
         if result:
-            self._data = self._client._data
+            self._data = self.client._data
             return self._data
         raise UpdateFailed()
 
     async def send_command(self, command, args):
         """Send command to GDO."""
-        await self._client.ws.send_message(command, args)
+        await self.client.ws.send_message(command, args)
 
     @callback
     async def websocket_update(self):
         """Trigger processing updated websocket data."""
         LOGGER.debug("Processing websocket data.")
-        self._data = self._client._data
+        self._data = self.client._data
         coordinator = self.hass.data[DOMAIN][self.config.entry_id][COORDINATOR]
         coordinator.async_set_updated_data(self._data)
