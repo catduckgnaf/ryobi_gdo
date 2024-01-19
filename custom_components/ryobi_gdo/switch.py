@@ -44,6 +44,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
+        self.coordinator = coordinator
         self._type = description.key
         self._attr_name = f"{coordinator.data['device_name']} {description.name}"
         self._attr_unique_id = f"ryobi_gdo_{description.name}_{self.device_id}"
@@ -82,7 +83,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
                 return True
         return False
 
-    async def async_turn_off(self, **kwargs: Any):
+    async def async_turn_off(self, **kwargs: dict[str, Any]):
         """Turn off light."""
         if self._type == "light_state":
             LOGGER.debug("Turning off light")
@@ -91,7 +92,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             LOGGER.debug("Turning off inflator")
             await self.coordinator.send_command("inflator", "moduleState", False)
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: dict[str, Any]):
         """Turn on light."""
         if self._type == "light_state":        
             LOGGER.debug("Turning on light")
