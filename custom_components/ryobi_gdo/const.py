@@ -21,10 +21,8 @@ ATTR_ATTRIBUTION = "attribution"
 CONF_DEVICE_ID = "device_id"
 
 # Device Model
+# deviceTypeIds = "gdoMasterUnit" or # "GD125"
 
-# GDO125
-
-# GDO200
 
 # WSS Messages
 GARAGE_UPDATE_MSG = "wskAttributeUpdateNtfy"
