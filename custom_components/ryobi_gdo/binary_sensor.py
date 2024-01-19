@@ -20,6 +20,12 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         icon="mdi:parking",
         key="park_assist",
     ),
+    "inflator": BinarySensorEntityDescription(
+        name="Inflator",
+        icon="mdi:car-tire-alert",
+        key="inflator",
+        entity_registry_enabled_default=False,
+    ),    
 }
 
 
@@ -59,7 +65,7 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return self.coordinator.last_update_success
+        return True if self._key is self.coordinator.data else False
 
     @property
     def icon(self) -> str:

@@ -355,6 +355,11 @@ class RyobiApiClient:
                         str(data[key]["value"])
                     ]
 
+            # Inflator module
+            elif "inflator" in key:
+                if module_name == "moduleState":
+                    self._data["inflator"] = data[key]["value"]
+
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
 
