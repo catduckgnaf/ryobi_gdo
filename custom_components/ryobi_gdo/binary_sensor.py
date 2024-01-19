@@ -65,7 +65,7 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return True if self._key is self.coordinator.data else False
+        return True if self._key in self.coordinator.data else False
 
     @property
     def icon(self) -> str:
