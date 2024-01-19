@@ -9,9 +9,9 @@ The Garage Door must first be setup and added through Ryobi's app. Once you've c
 ### Install from HACS (recommended)
 
 1. Have [HACS][hacs] installed, this will allow you to easily manage and track updates.
-1. Search in HACS for "Ryobi (When its added)" integration or just press the button below:\
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)][hacs-repository]
-1. Click Install below the found integration.
+2. Search in HACS for "Ryobi (When its added)" integration.
+3. Add See the [This github](https://github.com/catduckgnaf/ryobi_gdo/edit/main/README.md) as custom respository.
+4. Click Install below the found integration.
 
 # Issues
 
@@ -20,7 +20,6 @@ Please open an Issue and paste DEBUG logs or I can't help as easily. PLEASE remo
 
 
 ### Functionality / To-Do 
-See the [Projects board](https://github.com/users/CJOWood/projects/1) for updated list.
  - [x] HTTP: Login to check details and get API Key.
  - [x] HTTP: Get devices list to check for more than 1 GDO.
  - [x] HTTP: Get device state for each device.
