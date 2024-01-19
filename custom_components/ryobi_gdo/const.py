@@ -2,7 +2,7 @@
 
 NAME = "Ryobi GDO"
 DOMAIN = "ryobi_gdo"
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 ATTRIBUTION = "Data provided by Ryobi"
 ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 
@@ -19,6 +19,10 @@ ATTR_ATTRIBUTION = "attribution"
 
 # Configuration constants
 CONF_DEVICE_ID = "device_id"
+
+# Device Model
+# deviceTypeIds = "gdoMasterUnit" or # "GD125"
+
 
 # WSS Messages
 GARAGE_UPDATE_MSG = "wskAttributeUpdateNtfy"

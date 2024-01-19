@@ -37,7 +37,7 @@ SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the OpenEVSE sensors."""
+    """Set up the Ryobi GDO sensors."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
 
     sensors = []
