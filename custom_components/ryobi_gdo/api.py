@@ -259,29 +259,9 @@ class RyobiApiClient:
         self._modules.update(frame)
         return True
 
-    def get_door_status(self):
-        """Get current door status."""
-        return self.door_state
-
-    def get_battery_level(self):
-        """Get current battery level."""
-        return self.battery_level
-
-    def get_light_status(self):
-        """Get current light status."""
-        return self.light_state
-
-    def get_device_id(self):
-        """Get device_id."""
-        return self.device_id
-
-    async def close_device(self):
-        """Close Device."""
-        return await self.send_message("doorCommand", 0)
-
-    async def open_device(self):
-        """Open Device."""
-        return await self.send_message("doorCommand", 1)
+    def get_module(self, module: str) -> int:
+        """Return module number for device."""
+        return self._modules[module].split("_")
 
     def ws_connect(self) -> None:
         """Connect to websocket."""
@@ -580,7 +560,7 @@ class RyobiWebSocket:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
 
-    async def send_message(self, command, value):
+    async def send_message(self, module: int, command: str, value: bool):
         """Send message to API."""
         if self._state != STATE_CONNECTED:
             LOGGER.warning("Websocket not yet connected, unable to send command.")
@@ -592,7 +572,7 @@ class RyobiWebSocket:
             "params": {
                 "msgType": 16,
                 "moduleType": 5,
-                "portId": 7,
+                "portId": module,
                 "moduleMsg": {command: value},
                 "topic": self._device_id,
             },
