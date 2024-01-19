@@ -32,7 +32,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
     interval = 60  # Time in seconds
     coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry)
 
-      # Fetch initial data so we have data when entities subscribe
+    # Fetch initial data so we have data when entities subscribe
     await coordinator.async_refresh()
 
     if not coordinator.last_update_success:
