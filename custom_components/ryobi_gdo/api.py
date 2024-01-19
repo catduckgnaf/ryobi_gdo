@@ -189,6 +189,8 @@ class RyobiApiClient:
             # Parse the modules
             result = await self._index_modules(dtm)
 
+            LOGGER.debug("Modules indexed: %s", self._modules)
+
             # Parse initial values while we setup the websocket for push updates
             if result:
                 if "garageDoor" in self._modules:
@@ -218,7 +220,7 @@ class RyobiApiClient:
                         "moduleState"
                     ]["value"]
                 if "btSpeaker" in self._modules:
-                    self._data["btSpeaker"] = dtm[self._modules["inflator"]]["at"][
+                    self._data["btSpeaker"] = dtm[self._modules["btSpeaker"]]["at"][
                         "moduleState"
                     ]["value"]
 
