@@ -10,7 +10,7 @@ The Garage Door must first be setup and added through Ryobi's app. Once you've c
 
 1. Have [HACS][hacs] installed, this will allow you to easily manage and track updates.
 2. Search in HACS for "Ryobi (When its added)" integration.
-3. Add See the [https://github.com/catduckgnaf/ryobi_gdo](https://github.com/catduckgnaf/ryobi_gdo) as custom respository.
+3. Add [https://github.com/catduckgnaf/ryobi_gdo](https://github.com/catduckgnaf/ryobi_gdo) as custom respository.
 4. Click Install below the found integration.
 
 # Issues
