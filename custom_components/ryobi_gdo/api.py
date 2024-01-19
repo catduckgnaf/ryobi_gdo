@@ -261,7 +261,7 @@ class RyobiApiClient:
 
     def get_module(self, module: str) -> int:
         """Return module number for device."""
-        return self._modules[module].split("_")
+        return self._modules[module].split("_")[1]
 
     def ws_connect(self) -> None:
         """Connect to websocket."""
