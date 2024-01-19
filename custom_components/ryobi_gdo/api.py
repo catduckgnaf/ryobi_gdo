@@ -223,7 +223,8 @@ class RyobiApiClient:
                     self._data["btSpeaker"] = dtm[self._modules["btSpeaker"]]["at"][
                         "moduleState"
                     ]["value"]
-
+            if "name" in request["result"]["metaData"]:
+                self._data["device_name"] = request["result"]["metaData"]["name"]
             update_ok = True
             LOGGER.debug("Data: %s", self._data)
             if not self.ws:

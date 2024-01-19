@@ -59,7 +59,7 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
         self._key = sensor_description.key
         self.device_id = config_entry.data[CONF_DEVICE_ID]
 
-        self._attr_name = f"ryobi_gdo_{self._name}_{self.device_id}"
+        self._attr_name = f"{coordinator.data['device_name']} {self._name}"
         self._attr_unique_id = f"ryobi_gdo_{self._name}_{self.device_id}"
 
     @property

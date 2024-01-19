@@ -45,7 +45,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
         self._type = description.key
-        self._attr_name = f"ryobi_gdo_{description.name}_{self.device_id}"
+        self._attr_name = f"{coordinator.data['device_name']} {description.name}"
         self._attr_unique_id = f"ryobi_gdo_{description.name}_{self.device_id}"
 
     @property
@@ -66,7 +66,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return True if self._type is self.coordinator._data else False
+        return True if self._type in self.coordinator._data else False
 
     @property
     def is_on(self) -> bool:
