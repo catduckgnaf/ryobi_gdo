@@ -367,14 +367,14 @@ class RyobiApiClient:
        #     # Air compressor updates
        #    elif "airCompressor" in key:
        #         if module_name == "moduleState":
-       #             self._data["air_compressor"] = self.STATE[
+       #             self._data["air_compressor"] = self.COMPRESSOR_STATE[
        #                 str(data[key]["value"])
        #             ]
 
        #            # Bluetooth Speaker Updates
        #    elif "bt_Speaker" in key:
        #         if module_name == "moduleState":
-       #             self._data["bt_speaker"] = self.STATE[
+       #             self._data["bt_speaker"] = self.SPEAKER_STATE[
        #                 str(data[key]["value"])
        #             ]      ]
 
