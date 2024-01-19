@@ -66,7 +66,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        return True if self._type is self.coordinator.data else False
+        return True if self._type is self.coordinator._data else False
 
     @property
     def is_on(self) -> bool:
