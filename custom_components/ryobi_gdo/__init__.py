@@ -37,8 +37,8 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
-##    if not coordinator.client._ws_listening:
-##        raise ConfigEntryNotReady
+    if not coordinator.client.ws.state != "connected":
+        raise ConfigEntryNotReady
 
     # Start websocket listener
     coordinator.client.ws_connect()
