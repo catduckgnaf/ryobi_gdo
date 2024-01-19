@@ -25,7 +25,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         icon="mdi:car-tire-alert",
         key="inflator",
         entity_registry_enabled_default=False,
-    ),    
+    ),
 }
 
 

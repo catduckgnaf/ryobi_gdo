@@ -77,6 +77,7 @@ class RyobiApiClient:
         "False": STATE_OFF,
         "True": STATE_ON,
     }
+
     def __init__(self, username: str, password: str, device_id: str | None = None):
         """Initialize the API object."""
         self.username = username
@@ -191,25 +192,35 @@ class RyobiApiClient:
             # Parse initial values while we setup the websocket for push updates
             if result:
                 if "garageDoor" in self._modules:
-                    door_state = dtm[self._modules["garageDoor"]]["at"]["doorState"]["value"]
+                    door_state = dtm[self._modules["garageDoor"]]["at"]["doorState"][
+                        "value"
+                    ]
                     self._data["door_state"] = self.DOOR_STATE[str(door_state)]
                 if "garageLight" in self._modules:
-                    light_state = dtm[self._modules["garageLight"]]["at"]["lightState"]["value"]
+                    light_state = dtm[self._modules["garageLight"]]["at"]["lightState"][
+                        "value"
+                    ]
                     self._data["light_state"] = self.LIGHT_STATE[str(light_state)]
                 if "backupCharger" in self._modules:
-                    self._data["battery_level"] = dtm[self._modules["backupCharger"]]["at"]["chargeLevel"][
-                        "value"
-                    ]
+                    self._data["battery_level"] = dtm[self._modules["backupCharger"]][
+                        "at"
+                    ]["chargeLevel"]["value"]
                 if "wifiModule" in self._modules:
-                    self._data["wifi_rssi"] = dtm[self._modules["wifiModule"]]["at"]["rssi"]["value"]
+                    self._data["wifi_rssi"] = dtm[self._modules["wifiModule"]]["at"][
+                        "rssi"
+                    ]["value"]
                 if "parkAssistLaser" in self._modules:
-                    self._data["park_assist"] = dtm[self._modules["parkAssistLaser"]]["at"]["moduleState"][
-                        "value"
-                    ]
+                    self._data["park_assist"] = dtm[self._modules["parkAssistLaser"]][
+                        "at"
+                    ]["moduleState"]["value"]
                 if "inflator" in self._modules:
-                    self._data["inflator"] = dtm[self._modules["inflator"]]["at"]["moduleState"]["value"]
+                    self._data["inflator"] = dtm[self._modules["inflator"]]["at"][
+                        "moduleState"
+                    ]["value"]
                 if "btSpeaker" in self._modules:
-                    self._data["btSpeaker"] = dtm[self._modules["inflator"]]["at"]["moduleState"]["value"]
+                    self._data["btSpeaker"] = dtm[self._modules["inflator"]]["at"][
+                        "moduleState"
+                    ]["value"]
 
             update_ok = True
             LOGGER.debug("Data: %s", self._data)
@@ -221,11 +232,19 @@ class RyobiApiClient:
         except KeyError as error:
             LOGGER.error("Exception while parsing answer to update device: %s", error)
         return update_ok
-    
+
     async def _index_modules(self, dtm: dict) -> bool:
         """Index and add modules to dictorary."""
         # Known modules
-        module_list = ["garageDoor", "backupCharger", "garageLight", "wifiModule", "parkAssistLaser", "inflator", "btSpeaker"]
+        module_list = [
+            "garageDoor",
+            "backupCharger",
+            "garageLight",
+            "wifiModule",
+            "parkAssistLaser",
+            "inflator",
+            "btSpeaker",
+        ]
         frame = {}
         try:
             for key in dtm:
@@ -396,12 +415,12 @@ class RyobiApiClient:
                         str(data[key]["value"])
                     ]
 
-       #            # Bluetooth Speaker Updates
-       #    elif "bt_Speaker" in key:
-       #         if module_name == "moduleState":
-       #             self._data["bt_speaker"] = self.SPEAKER_STATE[
-       #                 str(data[key]["value"])
-       #             ]      ]
+            #            # Bluetooth Speaker Updates
+            #    elif "bt_Speaker" in key:
+            #         if module_name == "moduleState":
+            #             self._data["bt_speaker"] = self.SPEAKER_STATE[
+            #                 str(data[key]["value"])
+            #             ]      ]
 
             # Inflator module
             elif "inflator" in key:
