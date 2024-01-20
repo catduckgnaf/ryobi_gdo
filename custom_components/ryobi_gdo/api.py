@@ -63,17 +63,7 @@ class RyobiApiClient:
         "3": STATE_OPENING,
     }
 
-    LIGHT_STATE = {
-        "False": STATE_OFF,
-        "True": STATE_ON,
-    }
-
-    COMPRESSOR_STATE = {
-        "False": STATE_OFF,
-        "True": STATE_ON,
-    }
-
-    SPEAKER_STATE = {
+    BOOL_STATE = {
         "False": STATE_OFF,
         "True": STATE_ON,
     }
@@ -202,7 +192,7 @@ class RyobiApiClient:
                     light_state = dtm[self._modules["garageLight"]]["at"]["lightState"][
                         "value"
                     ]
-                    self._data["light_state"] = self.LIGHT_STATE[str(light_state)]
+                    self._data["light_state"] = self.BOOL_STATE[str(light_state)]
                 if "backupCharger" in self._modules:
                     self._data["battery_level"] = dtm[self._modules["backupCharger"]][
                         "at"
@@ -375,6 +365,18 @@ class RyobiApiClient:
             if "garageDoor" in key:
                 if module_name == "doorState":
                     self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
+                elif module_name == "motionSensor":
+                    self._data["motion"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]
+                elif module_name == "vacationMode":
+                    self._data["vacationMode"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]
+                elif module_name == "sensorFlag":
+                    self._data["safety"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]                      
                 attributes = {}
                 for item in data[key]:
                     attributes[item] = data[key][item]
@@ -383,7 +385,7 @@ class RyobiApiClient:
             # Garage Light updates
             elif "garageLight" in key:
                 if module_name == "lightState":
-                    self._data["light_state"] = self.LIGHT_STATE[
+                    self._data["light_state"] = self.BOOL_STATE[
                         str(data[key]["value"])
                     ]
                 attributes = {}
@@ -394,21 +396,27 @@ class RyobiApiClient:
             # Park Assist updates
             elif "parkAssistLaser" in key:
                 if module_name == "moduleState":
-                    self._data["park_assist"] = self.LIGHT_STATE[
+                    self._data["park_assist"] = self.BOOL_STATE[
                         str(data[key]["value"])
                     ]
 
-            #            # Bluetooth Speaker Updates
-            #    elif "bt_Speaker" in key:
-            #         if module_name == "moduleState":
-            #             self._data["bt_speaker"] = self.SPEAKER_STATE[
-            #                 str(data[key]["value"])
-            #             ]      ]
+            # Bluetooth Speaker Updates
+            elif "btSpeaker" in key:
+                if module_name == "moduleState":
+                    self._data["bt_speaker"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]
+                elif module_name == "micEnabled":
+                    self._data["micStatus"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]
 
             # Inflator module
             elif "inflator" in key:
                 if module_name == "moduleState":
-                    self._data["inflator"] = data[key]["value"]
+                    self._data["inflator"] = self.BOOL_STATE[
+                        str(data[key]["value"])
+                    ]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
