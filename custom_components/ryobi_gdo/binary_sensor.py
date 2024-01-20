@@ -5,6 +5,7 @@ from typing import Final, cast
 from homeassistant.components.binary_sensor import (
     BinarySensorEntity,
     BinarySensorEntityDescription,
+    BinarySensorDeviceClass,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.entity import DeviceInfo
@@ -24,6 +25,36 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         name="Inflator",
         icon="mdi:car-tire-alert",
         key="inflator",
+        entity_registry_enabled_default=False,
+    ),
+    "motion": BinarySensorEntityDescription(
+        name="Motion",
+        key="motion",
+        device_class=BinarySensorDeviceClass.MOTION,
+        entity_registry_enabled_default=False,
+    ),
+    "vacationMode": BinarySensorEntityDescription(
+        name="Vacation Mode",
+        key="vacationMode",
+        icon="mdi:wallet-travel",
+        entity_registry_enabled_default=False,
+    ),
+    "sensorFlag": BinarySensorEntityDescription(
+        name="Safety Sensor",
+        key="saftey",
+        icon="mdi:laser-pointer",
+        entity_registry_enabled_default=False,
+    ),
+    "btSpeaker": BinarySensorEntityDescription(
+        name="Bluetooth Speaker",
+        key="bt_speaker",
+        icon="mdi:speaker",
+        entity_registry_enabled_default=False,
+    ),
+    "micStatus": BinarySensorEntityDescription(
+        name="Microphone",
+        key="micStatus",
+        icon="mdi:microphone",
         entity_registry_enabled_default=False,
     ),
 }

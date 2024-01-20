@@ -36,9 +36,9 @@ async def test_sensors(hass, mock_device, mock_api_key, mock_ws):
     assert len(entries) == 1
 
     assert DOMAIN in hass.config.components
-    state = hass.states.get("sensor.ryobi_gdo_battery_level_fakedeviceid02")
+    state = hass.states.get("sensor.door2_battery_level")
     assert state
     assert state.state == "0"
-    state = hass.states.get("sensor.ryobi_gdo_wifi_signal_fakedeviceid02")
+    state = hass.states.get("sensor.door2_wifi_signal")
     assert state
     assert state.state == "-50"

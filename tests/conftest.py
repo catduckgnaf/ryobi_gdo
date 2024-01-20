@@ -6,7 +6,7 @@ from unittest.mock import patch
 from aioresponses import aioresponses
 import pytest
 
-from custom_components.ryobi_gdo.api import RyobiApiClient, RyobiWebSocket
+from custom_components.ryobi_gdo.api import RyobiApiClient
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
 
@@ -75,17 +75,13 @@ def mock_device(mock_aioclient):
 
 
 @pytest.fixture(name="mock_ws")
-def mock_ws(mock_aioclient):
+async def mock_ws(mock_aioclient):
     """Mock API call for API key endpoint."""
-    mock_aioclient.get(
-        TEST_WS_SERVER,
-        status=1000,
-        body=load_fixture("ws_auth_reply.json"),
-        repeat=True,
-    )
-    return RyobiWebSocket(
-        None, username="TestUser", apikey="FakeAPIKey", device="fakedeviceID02"
-    )
+    with patch(
+        "custom_components.ryobi_gdo.api.RyobiApiClient.ws_connect"
+    ) as mock_value:
+        mock_value.return_value = True
+        yield
 
 
 @pytest.fixture()
