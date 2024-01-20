@@ -254,6 +254,19 @@ class RyobiApiClient:
         """Return module number for device."""
         return self._modules[module].split("_")[1]
 
+    def get_module_type(self, module: str) -> int:
+        """Return module type for device."""
+        module_type = {
+            "garageDoor": 5,
+            "backupCharger": 6,
+            "garageLight": 5,
+            "wifiModule": 7,
+            "parkAssistLaser": 1,
+            "inflator": 4,
+            "btSpeaker": 2,
+        }
+        return module_type[module]
+
     def ws_connect(self) -> None:
         """Connect to websocket."""
         if self.api_key is None:
@@ -568,9 +581,9 @@ class RyobiWebSocket:
             "method": "gdoModuleCommand",
             "params": {
                 "msgType": 16,
-                "moduleType": 5,
+                "moduleType": args[1],
                 "portId": args[0],
-                "moduleMsg": {args[1]: args[2]},
+                "moduleMsg": {args[2]: args[3]},
                 "topic": self._device_id,
             },
         }
