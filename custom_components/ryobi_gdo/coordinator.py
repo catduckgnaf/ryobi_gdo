@@ -47,7 +47,8 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
     async def send_command(self, device: str, command: str, value: bool):
         """Send command to GDO."""
         module = self.client.get_module(device)
-        data = (module, command, value)
+        module_type = self.client.get_module_type(device)
+        data = (module, module_type, command, value)
         await self.client.ws.send_message(*data)
 
     @callback
