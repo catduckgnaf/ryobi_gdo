@@ -588,10 +588,11 @@ class RyobiWebSocket:
             },
         }
         LOGGER.debug(
-            "Sending command: %s value: %s portId: %s",
-            args[1],
+            "Sending command: %s value: %s portId: %s moduleType: %s",
             args[2],
+            args[3],
             args[0],
+            args[1],
         )
         LOGGER.debug("Full message: %s", ws_command)
         await self.websocket_send(ws_command)
