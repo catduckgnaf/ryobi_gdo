@@ -1,9 +1,9 @@
 """Ryobi platform for the switch component."""
 
 import logging
-from typing import Any
+from typing import Any, Final
 
-from homeassistant.components.switch import SwitchEntity
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_ON
 from homeassistant.helpers.entity import DeviceInfo
@@ -13,13 +13,31 @@ from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
 
 LOGGER = logging.getLogger(__name__)
 
+SWITCH_TYPES: Final[dict[str, SwitchEntityDescription]] = {
+    "light": SwitchEntityDescription(
+        name="Light",
+        key="light_state",
+    ),
+    "inflator": SwitchEntityDescription(
+        name="Inflator",
+        key="inflator",
+        entity_registry_enabled_default=False,
+    ),
+    "vacation": SwitchEntityDescription(
+        name="Vacation",
+        key="vacation_mode",
+        entity_registry_enabled_default=False,
+    ),
+}
+
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the OpenEVSE switches."""
+    """Set up the Ryobi switches."""
     coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
 
     switches = []
-    switches.append(RyobiSwitch(hass, entry, coordinator))
+    for switch in SWITCH_TYPES:
+        switches.append(RyobiSwitch(hass, entry, coordinator, SWITCH_TYPES[switch]))
 
     async_add_entities(switches, False)
 
@@ -27,12 +45,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a ryobi switch."""
 
-    def __init__(self, hass, config_entry: ConfigEntry, coordinator: str):
+    def __init__(
+        self,
+        hass,
+        config_entry: ConfigEntry,
+        coordinator: str,
+        description: SwitchEntityDescription,
+    ):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
-        self._attr_name = f"ryobi_gdo_light_{self.device_id}"
-        self._attr_unique_id = f"ryobi_gdo_light_{self.device_id}"
+        self.coordinator = coordinator
+        self._type = description.key
+        self._attr_name = f"{coordinator.data['device_name']} {description.name}"
+        self._attr_unique_id = f"ryobi_gdo_{description.name}_{self.device_id}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -50,29 +76,58 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         return self._attr_name
 
     @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return True if self._type in self.coordinator._data else False
+
+    @property
     def is_on(self) -> bool:
-        """Return if the light is off."""
+        """Return if the switches are off."""
         data = self.coordinator._data
         if data["light_state"] == STATE_ON:
             return True
+        if self._type not in data:
+            return False
+        if self._type == "light_state":
+            if data["light_state"] == STATE_ON:
+                return True
+        if self._type == "vacation_mode":
+            if data["vacation_mode"] == STATE_ON:
+                return True
+        elif self._type == "inflator":
+            if data["inflator"] == STATE_ON:
+                return True
         return False
 
-    async def async_turn_off(self, **kwargs: Any):
-        """Turn off light."""
-        LOGGER.debug("Turning off light")
-        await self.coordinator.send_command("lightState", False)
-        await self.coordinator._async_update_data()
+    async def async_turn_off(self, **kwargs: dict[str, Any]):
+        """Turn off switches."""
+        if self._type == "light_state":
+            LOGGER.debug("Turning off light")
+            await self.coordinator.send_command("garageLight", "lightState", False)
+        else self._type == "vacation_mode":
+            LOGGER.debug("Turning off Vacation Mode")
+            await self.coordinator.send_command("garageLight", "lightState", False)
+        elif self._type == "inflator":
+            LOGGER.debug("Turning off inflator")
+            await self.coordinator.send_command("inflator", "portStatus", False)
 
-    async def async_turn_on(self, **kwargs):
+    async def async_turn_on(self, **kwargs: dict[str, Any]):
         """Turn on light."""
-        LOGGER.debug("Turning on light")
-        await self.coordinator.send_command("lightState", True)
-        await self.coordinator._async_update_data()
+        if self._type == "light_state":
+            LOGGER.debug("Turning on light")
+            await self.coordinator.send_command("garageLight", "lightState", True)
+        else self._type == "vacation_mode":
+            LOGGER.debug("Turning on Vacation Mode")
+            await self.coordinator.send_command("vacationMode", "portStatus", True)
+        elif self._type == "inflator":
+            LOGGER.debug("Turning on inflator")
+            await self.coordinator.send_command("inflator", "portStatus", True)
 
     @property
     def extra_state_attributes(self) -> dict | None:
         """Return sesnsor attributes."""
         attrs = {}
-        if "light_attributes" in self.coordinator.data:
-            attrs.update(self.coordinator.data["light_attributes"])
+        if self._type == "light_state":
+            if "light_attributes" in self.coordinator.data:
+                attrs.update(self.coordinator.data["light_attributes"])
         return attrs
