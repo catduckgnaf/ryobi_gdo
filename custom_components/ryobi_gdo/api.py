@@ -561,12 +561,13 @@ class RyobiWebSocket:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
 
-    @staticmethod
-    async def send_message(self, module: int, command: str, value: bool):
+    async def send_message(self, *args):
         """Send message to API."""
         if self._state != STATE_CONNECTED:
             LOGGER.warning("Websocket not yet connected, unable to send command.")
             return
+
+        LOGGER.debug("Send message args: %s", args)
 
         ws_command = {
             "jsonrpc": "2.0",
@@ -574,12 +575,17 @@ class RyobiWebSocket:
             "params": {
                 "msgType": 16,
                 "moduleType": 5,
-                "portId": module,
-                "moduleMsg": {command: value},
+                "portId": args[0],
+                "moduleMsg": {args[1]: args[2]},
                 "topic": self._device_id,
             },
         }
-        LOGGER.debug("Sending command: %s value: %s", command, value)
+        LOGGER.debug(
+            "Sending command: %s value: %s portId: %s",
+            args[1],
+            args[2],
+            args[0],
+        )
         LOGGER.debug("Full message: %s", ws_command)
         await self.websocket_send(ws_command)
 
