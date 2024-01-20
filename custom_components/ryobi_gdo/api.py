@@ -581,8 +581,8 @@ class RyobiWebSocket:
             "method": "gdoModuleCommand",
             "params": {
                 "msgType": 16,
-                "moduleType": args[1],
-                "portId": args[0],
+                "moduleType": int(args[1]),
+                "portId": int(args[0]),
                 "moduleMsg": {args[2]: args[3]},
                 "topic": self._device_id,
             },
