@@ -40,7 +40,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
 class RyobiSwitch(CoordinatorEntity, SwitchEntity):
     """Representation of a ryobi switch."""
 
-    def __init__(self, hass, config_entry: ConfigEntry, coordinator: str, description: SwitchEntityDescription):
+    def __init__(
+        self,
+        hass,
+        config_entry: ConfigEntry,
+        coordinator: str,
+        description: SwitchEntityDescription,
+    ):
         """Initialize the switch."""
         super().__init__(coordinator)
         self.device_id = config_entry.data[CONF_DEVICE_ID]
@@ -88,24 +94,24 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         if self._type == "light_state":
             LOGGER.debug("Turning off light")
             await self.coordinator.send_command("garageLight", "lightState", False)
-        elif self._type == "inflator":            
+        elif self._type == "inflator":
             LOGGER.debug("Turning off inflator")
             await self.coordinator.send_command("inflator", "moduleState", False)
 
     async def async_turn_on(self, **kwargs: dict[str, Any]):
         """Turn on light."""
-        if self._type == "light_state":        
+        if self._type == "light_state":
             LOGGER.debug("Turning on light")
             await self.coordinator.send_command("garageLight", "lightState", True)
-        elif self._type == "inflator":            
+        elif self._type == "inflator":
             LOGGER.debug("Turning on inflator")
-            await self.coordinator.send_command("inflator", "moduleState", True)            
+            await self.coordinator.send_command("inflator", "moduleState", True)
 
     @property
     def extra_state_attributes(self) -> dict | None:
         """Return sesnsor attributes."""
         attrs = {}
-        if self._type == "light_state":   
+        if self._type == "light_state":
             if "light_attributes" in self.coordinator.data:
                 attrs.update(self.coordinator.data["light_attributes"])
         return attrs
