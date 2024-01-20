@@ -558,7 +558,7 @@ class RyobiWebSocket:
     async def websocket_send(self, message: dict) -> bool:
         """Send websocket message."""
         json_message = json.dumps(message)
-        LOGGER.debug("Websocket sending data: %s", json_message)
+        LOGGER.debug("Websocket sending data: %s", self.redact_api_key(json_message))
 
         try:
             await self._ws_client.send_str(json_message)
@@ -567,6 +567,13 @@ class RyobiWebSocket:
         except Exception as err:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
+    
+    def redact_api_key(message: dict) -> dict:
+        """Clear API key data from logs."""
+        if "params" in message:
+            if "apiKey" in message["params"]:
+                message["params"]["apiKey"] = ""
+        return message
 
     async def send_message(self, *args):
         """Send message to API."""
