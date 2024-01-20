@@ -566,7 +566,7 @@ class RyobiWebSocket:
         if self._state != STATE_CONNECTED:
             LOGGER.warning("Websocket not yet connected, unable to send command.")
             return
-        
+
         LOGGER.debug("Send message args: %s", args)
 
         ws_command = {
