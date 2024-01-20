@@ -561,6 +561,7 @@ class RyobiWebSocket:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
 
+    @staticmethod
     async def send_message(self, module: int, command: str, value: bool):
         """Send message to API."""
         if self._state != STATE_CONNECTED:

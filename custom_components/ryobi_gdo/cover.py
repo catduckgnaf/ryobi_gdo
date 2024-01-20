@@ -54,6 +54,7 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._config = config_entry
+        self.coordinator = coordinator
         self.entity_description = sensor_description
         self._name = sensor_description.name
         self.device_id = config_entry.data[CONF_DEVICE_ID]
