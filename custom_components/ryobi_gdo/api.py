@@ -366,17 +366,13 @@ class RyobiApiClient:
                 if module_name == "doorState":
                     self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
                 elif module_name == "motionSensor":
-                    self._data["motion"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["motion"] = self.BOOL_STATE[str(data[key]["value"])]
                 elif module_name == "vacationMode":
                     self._data["vacationMode"] = self.BOOL_STATE[
                         str(data[key]["value"])
                     ]
                 elif module_name == "sensorFlag":
-                    self._data["safety"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]                      
+                    self._data["safety"] = self.BOOL_STATE[str(data[key]["value"])]
                 attributes = {}
                 for item in data[key]:
                     attributes[item] = data[key][item]
@@ -385,9 +381,7 @@ class RyobiApiClient:
             # Garage Light updates
             elif "garageLight" in key:
                 if module_name == "lightState":
-                    self._data["light_state"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["light_state"] = self.BOOL_STATE[str(data[key]["value"])]
                 attributes = {}
                 for item in data[key]:
                     attributes[item] = data[key][item]
@@ -396,27 +390,19 @@ class RyobiApiClient:
             # Park Assist updates
             elif "parkAssistLaser" in key:
                 if module_name == "moduleState":
-                    self._data["park_assist"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["park_assist"] = self.BOOL_STATE[str(data[key]["value"])]
 
             # Bluetooth Speaker Updates
             elif "btSpeaker" in key:
                 if module_name == "moduleState":
-                    self._data["bt_speaker"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["bt_speaker"] = self.BOOL_STATE[str(data[key]["value"])]
                 elif module_name == "micEnabled":
-                    self._data["micStatus"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["micStatus"] = self.BOOL_STATE[str(data[key]["value"])]
 
             # Inflator module
             elif "inflator" in key:
                 if module_name == "moduleState":
-                    self._data["inflator"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["inflator"] = self.BOOL_STATE[str(data[key]["value"])]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)

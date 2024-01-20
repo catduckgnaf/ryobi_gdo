@@ -44,7 +44,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         key="saftey",
         icon="mdi:laser-pointer",
         entity_registry_enabled_default=False,
-    ),    
+    ),
     "btSpeaker": BinarySensorEntityDescription(
         name="Bluetooth Speaker",
         key="bt_speaker",
@@ -56,7 +56,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         key="micStatus",
         icon="mdi:microphone",
         entity_registry_enabled_default=False,
-    ),     
+    ),
 }
 
 
