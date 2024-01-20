@@ -567,7 +567,7 @@ class RyobiWebSocket:
         except Exception as err:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
-    
+
     def redact_api_key(message: dict) -> dict:
         """Clear API key data from logs."""
         if "params" in message:
