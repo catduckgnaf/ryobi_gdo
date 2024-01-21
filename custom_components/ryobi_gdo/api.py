@@ -188,6 +188,15 @@ class RyobiApiClient:
                         "value"
                     ]
                     self._data["door_state"] = self.DOOR_STATE[str(door_state)]
+                    self._data["saftey"] = dtm[self._modules["garageDoor"]]["at"]["sensorFlag"][
+                        "value"
+                    ]
+                    self._data["vacationMode"] = dtm[self._modules["garageDoor"]]["at"]["vacationMode"][
+                        "value"
+                    ]
+                    self._data["motion"] = dtm[self._modules["garageDoor"]]["at"]["motionSensor"][
+                        "value"
+                    ]                             
                 if "garageLight" in self._modules:
                     light_state = dtm[self._modules["garageLight"]]["at"]["lightState"][
                         "value"
@@ -210,9 +219,13 @@ class RyobiApiClient:
                         "moduleState"
                     ]["value"]
                 if "btSpeaker" in self._modules:
-                    self._data["btSpeaker"] = dtm[self._modules["btSpeaker"]]["at"][
+                    self._data["bt_speaker"] = dtm[self._modules["btSpeaker"]]["at"][
                         "moduleState"
                     ]["value"]
+                    self._data["micStatus"] = dtm[self._modules["btSpeaker"]]["at"][
+                        "micEnable"
+                    ]["value"]
+
             if "name" in request["result"][0]["metaData"]:
                 self._data["device_name"] = request["result"][0]["metaData"]["name"]
             update_ok = True
