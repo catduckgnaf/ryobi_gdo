@@ -1,5 +1,4 @@
 {
     "name": "Ryobi GDO",
-    "homeassistant": "2023.1.0",
-    "render_readme": true,
+    "homeassistant": "2023.1.0"
 }
