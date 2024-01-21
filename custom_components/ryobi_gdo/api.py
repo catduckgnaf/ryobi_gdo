@@ -571,7 +571,7 @@ class RyobiWebSocket:
     async def websocket_send(self, message: dict) -> bool:
         """Send websocket message."""
         json_message = json.dumps(message)
-        LOGGER.debug("Websocket sending data: %s", self.redact_api_key(json_message))
+        return json.dumps(message)
 
         try:
             await self._ws_client.send_str(json_message)
