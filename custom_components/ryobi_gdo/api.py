@@ -581,7 +581,7 @@ class RyobiWebSocket:
             LOGGER.error("Websocket error sending message: %s", err)
         return False
 
-    def redact_api_key(message: dict) -> dict:
+    def redact_api_key(self, message: dict) -> dict:
         """Clear API key data from logs."""
         if "params" in message:
             if "apiKey" in message["params"]:
