@@ -10,5 +10,5 @@
     "iot_class": "cloud_polling",
     "issue_tracker": "https://github.com/catduckgnaf/ryobi_gdo/issues",
     "requirements": [],
-    "version": "0.1.3"
+    "version": "0.1.4"
 }
