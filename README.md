@@ -32,6 +32,8 @@ Please open an Issue and paste DEBUG logs or I can't help as easily. PLEASE remo
  - [ ] WS: Check for and implement set_position command (look into app's "preset" functionality).
  - [ ] WS: Check for and implement stop command.
  - [x] Implement RyobiGarage LightEntity in HA.
+ - [ ] Implement Motion Sensor in HA.
+ - [ ] Fully Support G125
  - [ ] Get identities for all modules. (currently a work in progress.).
 ### 'Thank You's
  - [Madj42](https://github.com/Madj42) and his [ryobi_gdo3](https://github.com/Madj42/ryobi_gdo3) integratio.
