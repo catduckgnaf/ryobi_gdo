@@ -1,8 +1,5 @@
 {
     "name": "Ryobi GDO",
-    "filename": "ryobi_gdo.zip",
-    "hide_default_branch": true,
     "homeassistant": "2023.1.0",
     "render_readme": true,
-    "zip_release": true
 }
