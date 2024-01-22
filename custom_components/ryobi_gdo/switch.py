@@ -1,7 +1,7 @@
 """Ryobi platform for the switch component."""
 
 import logging
-from typing import Any, Final
+from typing import Any, cast, Final
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
@@ -81,13 +81,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         data = self.coordinator._data
         if self._type not in data:
             return False
-        if self._type == "light_state":
-            if data["light_state"] == STATE_ON:
-                return True
-        elif self._type == "inflator":
-            if data["inflator"] == STATE_ON:
-                return True
-        return False
+        return cast(bool, data[self._type] == 1)
 
     async def async_turn_off(self, **kwargs: dict[str, Any]):
         """Turn off light."""
@@ -96,6 +90,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             await self.coordinator.send_command("garageLight", "lightState", False)
         elif self._type == "inflator":
             LOGGER.debug("Turning off inflator")
+            self.coordinator.data["inflator"] = False
             await self.coordinator.send_command("inflator", "moduleState", False)
 
     async def async_turn_on(self, **kwargs: dict[str, Any]):
@@ -105,6 +100,7 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             await self.coordinator.send_command("garageLight", "lightState", True)
         elif self._type == "inflator":
             LOGGER.debug("Turning on inflator")
+            self.coordinator.data["inflator"] = True
             await self.coordinator.send_command("inflator", "moduleState", True)
 
     @property
