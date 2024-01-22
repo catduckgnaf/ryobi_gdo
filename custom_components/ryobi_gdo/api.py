@@ -14,8 +14,6 @@ from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
 from homeassistant.const import (
     STATE_CLOSED,
     STATE_CLOSING,
-    STATE_OFF,
-    STATE_ON,
     STATE_OPEN,
     STATE_OPENING,
 )
