@@ -189,9 +189,10 @@ class RyobiApiClient:
                     self._data["vacationMode"] = dtm[self._modules["garageDoor"]]["at"][
                         "vacationMode"
                     ]["value"]
-                    self._data["motion"] = dtm[self._modules["garageDoor"]]["at"][
-                        "motionSensor"
-                    ]["value"]
+                    if "motionSensor" in self._modules["garageDoor"]]["at"]:
+                        self._data["motion"] = dtm[self._modules["garageDoor"]]["at"][
+                            "motionSensor"
+                        ]["value"]
                 if "garageLight" in self._modules:
                     self._data["light_state"] = dtm[self._modules["garageLight"]]["at"][
                         "lightState"
