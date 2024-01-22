@@ -14,8 +14,6 @@ from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
 from homeassistant.const import (
     STATE_CLOSED,
     STATE_CLOSING,
-    STATE_OFF,
-    STATE_ON,
     STATE_OPEN,
     STATE_OPENING,
 )
@@ -61,11 +59,6 @@ class RyobiApiClient:
         "1": STATE_OPEN,
         "2": STATE_CLOSING,
         "3": STATE_OPENING,
-    }
-
-    BOOL_STATE = {
-        "False": STATE_OFF,
-        "True": STATE_ON,
     }
 
     def __init__(self, username: str, password: str, device_id: str | None = None):
@@ -194,14 +187,14 @@ class RyobiApiClient:
                     self._data["vacationMode"] = dtm[self._modules["garageDoor"]]["at"][
                         "vacationMode"
                     ]["value"]
-                    self._data["motion"] = dtm[self._modules["garageDoor"]]["at"][
-                        "motionSensor"
-                    ]["value"]
+                    if "motionSensor" in dtm[self._modules["garageDoor"]]["at"]:
+                        self._data["motion"] = dtm[self._modules["garageDoor"]]["at"][
+                            "motionSensor"
+                        ]["value"]
                 if "garageLight" in self._modules:
-                    light_state = dtm[self._modules["garageLight"]]["at"]["lightState"][
-                        "value"
-                    ]
-                    self._data["light_state"] = self.BOOL_STATE[str(light_state)]
+                    self._data["light_state"] = dtm[self._modules["garageLight"]]["at"][
+                        "lightState"
+                    ]["value"]
                 if "backupCharger" in self._modules:
                     self._data["battery_level"] = dtm[self._modules["backupCharger"]][
                         "at"
@@ -392,13 +385,11 @@ class RyobiApiClient:
                 if module_name == "doorState":
                     self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
                 elif module_name == "motionSensor":
-                    self._data["motion"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["motion"] = data[key]["value"]
                 elif module_name == "vacationMode":
-                    self._data["vacationMode"] = self.BOOL_STATE[
-                        str(data[key]["value"])
-                    ]
+                    self._data["vacationMode"] = data[key]["value"]
                 elif module_name == "sensorFlag":
-                    self._data["safety"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["safety"] = data[key]["value"]
                 attributes = {}
                 for item in data[key]:
                     attributes[item] = data[key][item]
@@ -407,7 +398,7 @@ class RyobiApiClient:
             # Garage Light updates
             elif "garageLight" in key:
                 if module_name == "lightState":
-                    self._data["light_state"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["light_state"] = data[key]["value"]
                 attributes = {}
                 for item in data[key]:
                     attributes[item] = data[key][item]
@@ -416,19 +407,19 @@ class RyobiApiClient:
             # Park Assist updates
             elif "parkAssistLaser" in key:
                 if module_name == "moduleState":
-                    self._data["park_assist"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["park_assist"] = data[key]["value"]
 
             # Bluetooth Speaker Updates
             elif "btSpeaker" in key:
                 if module_name == "moduleState":
-                    self._data["bt_speaker"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["bt_speaker"] = data[key]["value"]
                 elif module_name == "micEnabled":
-                    self._data["micStatus"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["micStatus"] = data[key]["value"]
 
             # Inflator module
             elif "inflator" in key:
                 if module_name == "moduleState":
-                    self._data["inflator"] = self.BOOL_STATE[str(data[key]["value"])]
+                    self._data["inflator"] = data[key]["value"]
 
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
