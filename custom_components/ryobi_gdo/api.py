@@ -17,6 +17,7 @@ from homeassistant.const import (
     STATE_OPEN,
     STATE_OPENING,
 )
+from homeassistant.core import callback
 
 from .const import (
     DEVICE_GET_ENDPOINT,
@@ -74,7 +75,7 @@ class RyobiApiClient:
         self.ws = None
         self.callback: abc.Callable | None = None
         self.socket_state = None
-        self._ws_listening = False
+        self.ws_listening = False
         self._modules = {}
 
     async def _process_request(
@@ -280,7 +281,7 @@ class RyobiApiClient:
             raise APIKeyError
 
         assert self.ws
-        if self._ws_listening:
+        if self.ws_listening:
             LOGGER.debug("Websocket already connected.")
             return
 
@@ -290,7 +291,7 @@ class RyobiApiClient:
     async def ws_disconnect(self) -> bool:
         """Disconnect from websocket."""
         assert self.ws
-        if not self._ws_listening:
+        if not self.ws_listening:
             LOGGER.debug("Websocket already disconnected.")
         await self.ws.close()
 
@@ -303,7 +304,7 @@ class RyobiApiClient:
             self._loop = asyncio.get_event_loop()
             LOGGER.debug("Using new event loop...")
 
-        if not self._ws_listening:
+        if not self.ws_listening:
             self._loop.create_task(self.ws.listen())
             pending = asyncio.all_tasks()
             try:
@@ -311,6 +312,7 @@ class RyobiApiClient:
             except RuntimeError:
                 LOGGER.info(INFO_LOOP_RUNNING)
 
+    @callback
     async def _process_message(
         self, msg_type: str, msg: dict, error: str | None = None
     ) -> None:
@@ -318,13 +320,13 @@ class RyobiApiClient:
         if msg_type == SIGNAL_CONNECTION_STATE:
             if msg == STATE_CONNECTED:
                 LOGGER.debug("Websocket to %s successful", self.ws.url)
-                self._ws_listening = True
+                self.ws_listening = True
             elif msg == STATE_DISCONNECTED:
                 LOGGER.debug(
-                    "Websocket to %s disconnected, retrying",
-                    self.websocket.uri,
+                    "Websocket to %s disconnected",
+                    self.ws.uri,
                 )
-                self._ws_listening = False
+                self.ws_listening = False
             # Stopped websockets without errors are expected during shutdown
             # and ignored
             elif msg == STATE_STOPPED and error:
@@ -333,7 +335,7 @@ class RyobiApiClient:
                     self.ws.url,
                     error,
                 )
-                self._ws_listening = False
+                self.ws_listening = False
 
         elif msg_type == "data":
             message = msg
@@ -442,6 +444,7 @@ class RyobiWebSocket:
         self._state = None
         self._error_reason = None
         self._ws_client = None
+        self.failed_attempts = 0
 
     @property
     def state(self) -> str | None:

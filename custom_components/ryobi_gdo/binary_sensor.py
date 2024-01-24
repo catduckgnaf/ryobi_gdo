@@ -57,6 +57,11 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
         icon="mdi:microphone",
         entity_registry_enabled_default=False,
     ),
+    "websocket": BinarySensorEntityDescription(
+        name="Server Connection",
+        key="websocket",
+        device_class=BinarySensorDeviceClass.CONNECTIVITY,
+    ),
 }
 
 
@@ -117,6 +122,8 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def is_on(self) -> bool:
         """Return True if the service is on."""
         data = self.coordinator.data
+        if self._key == "websocket":
+            return self.coordinator.client.ws_listening
         if self._key not in data:
             LOGGER.info("binary_sensor [%s] not supported.", self._key)
             return None

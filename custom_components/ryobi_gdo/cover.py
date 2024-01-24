@@ -124,3 +124,8 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
         if "door_attributes" in self.coordinator.data:
             attrs.update(self.coordinator.data["door_attributes"])
         return attrs
+
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        return True if self.coordinator.client.ws_listening else False
