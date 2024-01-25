@@ -102,7 +102,7 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
     def available(self) -> bool:
         """Return if entity is available."""
         if self._key == "websocket":
-            return True # This sensor should always be available
+            return True  # This sensor should always be available
         return True if self._key in self.coordinator.data else False
 
     @property
