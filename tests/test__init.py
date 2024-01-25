@@ -31,7 +31,7 @@ async def test_setup_and_unload(hass, mock_device, mock_api_key, mock_ws):
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
     assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
     assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 2
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 1
+    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 2
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
@@ -41,7 +41,7 @@ async def test_setup_and_unload(hass, mock_device, mock_api_key, mock_ws):
     assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
     assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
     assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 2
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 1
+    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 2
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
     assert await hass.config_entries.async_remove(entries[0].entry_id)
