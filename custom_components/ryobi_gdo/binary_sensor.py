@@ -1,4 +1,5 @@
 """Binary sensor platform for Ryobi GDO."""
+
 import logging
 from typing import Final, cast
 
