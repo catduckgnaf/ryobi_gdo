@@ -29,12 +29,13 @@ Please open an Issue and paste DEBUG logs or I can't help as easily. PLEASE remo
  - [x] Implement RyobiGarage CoverEntity in HA.
  - [x] Set the unique_id properly using device_id, mac, serial and name.
  - [x] WS: Send open/close command to sever
+ - [ ] Support Vacation mode toggle
  - [ ] WS: Check for and implement set_position command (look into app's "preset" functionality).
  - [ ] WS: Check for and implement stop command.
  - [x] Implement RyobiGarage LightEntity in HA.
- - [ ] Implement Motion Sensor in HA.
- - [ ] Fully Support G125
- - [ ] Get identities for all modules. (currently a work in progress.).
+ - [x] Implement Motion Sensor in HA.
+ - [x] Fully Support G125
+ - [-] Get identities for all modules. (currently a work in progress.).
 ### 'Thank You's
  - [Madj42](https://github.com/Madj42) and his [ryobi_gdo3](https://github.com/Madj42/ryobi_gdo3) integratio.
  - [**Jezza34000**](https://github.com//CJOWood/) and his [**Ryobi Garage**](https://github.com/CJOWood/ryobi_garage/) for initial websocket work.
