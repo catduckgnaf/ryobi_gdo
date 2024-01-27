@@ -57,7 +57,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
         """Trigger processing updated websocket data."""
         LOGGER.debug("Processing websocket data.")
         # Websocket dropped out handle reconnecting
-        if self.client.ws_listening == False:
+        if not self.client.ws_listening:
             # Close any left over sessions
             await self.client.ws_disconnect()
             # Reconnect the websocket
