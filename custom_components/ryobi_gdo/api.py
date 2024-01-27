@@ -317,6 +317,7 @@ class RyobiApiClient:
         self, msg_type: str, msg: dict, error: str | None = None
     ) -> None:
         """Process websocket data and handle websocket signaling."""
+        LOGGER.debug("Websocket callback msg_type: %s msg: %s err: %s", msg_type, msg, error)
         if msg_type == SIGNAL_CONNECTION_STATE:
             if msg == STATE_CONNECTED:
                 LOGGER.debug("Websocket to %s successful", self.ws.url)

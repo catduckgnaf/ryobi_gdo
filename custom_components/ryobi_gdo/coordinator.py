@@ -55,6 +55,12 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
     async def websocket_update(self):
         """Trigger processing updated websocket data."""
         LOGGER.debug("Processing websocket data.")
+        # Websocket dropped out handle reconnecting
+        if self.client.ws_listening == False:
+            # Close any left over sessions
+            await self.client.ws_disconnect()
+            # Reconnect the websocket
+            await self.client.ws_connect()
         self._data = self.client._data
         coordinator = self.hass.data[DOMAIN][self.config.entry_id][COORDINATOR]
         coordinator.async_set_updated_data(self._data)
