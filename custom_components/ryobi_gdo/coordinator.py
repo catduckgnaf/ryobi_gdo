@@ -52,7 +52,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
             # Close any left over sessions
             await self.client.ws_disconnect()
             # Reconnect the websocket
-            await self.client.ws_connect()        
+            await self.client.ws_connect()
         module = self.client.get_module(device)
         module_type = self.client.get_module_type(device)
         data = (module, module_type, command, value)
