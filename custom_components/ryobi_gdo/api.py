@@ -60,6 +60,7 @@ class RyobiApiClient:
         "1": STATE_OPEN,
         "2": STATE_CLOSING,
         "3": STATE_OPENING,
+        "4": "fault",
     }
 
     def __init__(self, username: str, password: str, device_id: str | None = None):
