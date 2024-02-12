@@ -47,6 +47,12 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def send_command(self, device: str, command: str, value: bool):
         """Send command to GDO."""
+        # Websocket dropped out handle reconnecting
+        if not self.client.ws_listening:
+            # Close any left over sessions
+            await self.client.ws_disconnect()
+            # Reconnect the websocket
+            await self.client.ws_connect()
         module = self.client.get_module(device)
         module_type = self.client.get_module_type(device)
         data = (module, module_type, command, value)
