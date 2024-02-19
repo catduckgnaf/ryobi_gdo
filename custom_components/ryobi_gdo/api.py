@@ -533,8 +533,8 @@ class RyobiWebSocket:
             if self._state != STATE_STOPPED:
                 LOGGER.debug(
                     "Websocket msgType: %s CloseCode: %s",
-                    aiohttp.WSMsgType,
-                    aiohttp.WSCloseCode,
+                    str(aiohttp.WSMsgType),
+                    str(aiohttp.WSCloseCode),
                 )
                 await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
                 await asyncio.sleep(5)
