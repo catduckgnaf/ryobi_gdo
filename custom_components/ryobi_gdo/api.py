@@ -231,6 +231,10 @@ class RyobiApiClient:
                     self._data["micStatus"] = dtm[self._modules["btSpeaker"]]["at"][
                         "micEnable"
                     ]["value"]
+                if "fan" in self._modules:
+                    self._data["fan"] = dtm[self._modules["fan"]]["at"][
+                        "speed"
+                    ]["value"]
 
             if "name" in request["result"][0]["metaData"]:
                 self._data["device_name"] = request["result"][0]["metaData"]["name"]
@@ -256,6 +260,7 @@ class RyobiApiClient:
             "parkAssistLaser",
             "inflator",
             "btSpeaker",
+            "fan"
         ]
         frame = {}
         try:
@@ -283,6 +288,7 @@ class RyobiApiClient:
             "parkAssistLaser": 1,
             "inflator": 4,
             "btSpeaker": 2,
+            "fan": 3
         }
         return module_type[module]
 
@@ -438,6 +444,10 @@ class RyobiApiClient:
                 if module_name == "moduleState":
                     self._data["inflator"] = data[key]["value"]
 
+            # fan module
+            elif "fan" in key:
+                if module_name == "speed":
+                    self._data["fan"] = data[key]["value"]
             else:
                 LOGGER.error("Websocket data update unknown module: %s", key)
 
