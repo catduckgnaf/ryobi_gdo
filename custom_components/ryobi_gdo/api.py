@@ -81,23 +81,26 @@ class RyobiApiClient:
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
-    ) -> Any:
+    ) -> Optional[dict]:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
             LOGGER.debug("Connecting to %s using %s", url, method)
+            reply = None
             try:
                 async with http_hethod(url, data=data) as response:
-                    reply = await response.text()
+                    rawReply = await response.text()
                     try:
-                        reply = json.loads(reply)
+                        reply = json.loads(rawReply)
+                        if not isinstance(reply, dict):
+                            reply = None
                     except ValueError:
                         LOGGER.warning(
-                            "Reply was not in JSON format: %s", response.text()
+                            "Reply was not in JSON format: %s", rawReply
                         )
 
                     if response.status in [404, 405, 500]:
-                        LOGGER.warning("HTTP Error: %s", response.text())
+                        LOGGER.warning("HTTP Error: %s", rawReply)
             except (TimeoutError, ServerTimeoutError):
                 LOGGER.error("Timeout connecting to %s", url)
             except ServerConnectionError:
@@ -112,6 +115,8 @@ class RyobiApiClient:
         data = {"username": self.username, "password": self.password}
         method = "post"
         request = await self._process_request(url, method, data)
+        if request is None:
+            return auth_ok
         try:
             resp_meta = request["result"]["metaData"]
             self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
@@ -127,6 +132,8 @@ class RyobiApiClient:
         data = {"username": self.username, "password": self.password}
         method = "get"
         request = await self._process_request(url, method, data)
+        if request is None:
+            return device_found
         try:
             result = request["result"]
         except KeyError:
@@ -146,6 +153,8 @@ class RyobiApiClient:
         data = {"username": self.username, "password": self.password}
         method = "get"
         request = await self._process_request(url, method, data)
+        if request is None:
+            return devices
         try:
             result = request["result"]
         except KeyError:
@@ -169,6 +178,8 @@ class RyobiApiClient:
         data = {"username": self.username, "password": self.password}
         method = "get"
         request = await self._process_request(url, method, data)
+        if request is None:
+            return update_ok
         try:
             dtm = request["result"][0]["deviceTypeMap"]
             # Parse the modules
