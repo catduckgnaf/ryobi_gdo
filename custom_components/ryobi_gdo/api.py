@@ -357,6 +357,11 @@ class RyobiApiClient:
                     error,
                 )
                 self.ws_listening = False
+            # Flag websocket as not listening
+            # STATE_STOPPED with no error
+            else:
+                LOGGER.debug("Websocket state: %s error: %s", msg, error)
+                self.ws_listening = False
 
         elif msg_type == "data":
             message = msg
@@ -384,6 +389,8 @@ class RyobiApiClient:
 
             else:
                 LOGGER.error("Websocket unknown message received: %s", message)
+        else:
+            LOGGER.debug("Unknown message from websocket: %s type: %s", msg, msg_type)
 
     async def parse_message(self, data: dict) -> None:
         """Parse incoming updated data."""
