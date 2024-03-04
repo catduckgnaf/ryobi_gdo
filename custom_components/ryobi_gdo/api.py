@@ -6,7 +6,6 @@ import asyncio
 from collections import abc
 import json
 import logging
-from typing import Optional
 
 import aiohttp  # type: ignore
 from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
@@ -81,7 +80,7 @@ class RyobiApiClient:
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
