@@ -6,7 +6,7 @@ import asyncio
 from collections import abc
 import json
 import logging
-from typing import Any
+from typing import Optional
 
 import aiohttp  # type: ignore
 from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
@@ -95,9 +95,7 @@ class RyobiApiClient:
                         if not isinstance(reply, dict):
                             reply = None
                     except ValueError:
-                        LOGGER.warning(
-                            "Reply was not in JSON format: %s", rawReply
-                        )
+                        LOGGER.warning("Reply was not in JSON format: %s", rawReply)
 
                     if response.status in [404, 405, 500]:
                         LOGGER.warning("HTTP Error: %s", rawReply)
@@ -232,9 +230,9 @@ class RyobiApiClient:
                         "micEnable"
                     ]["value"]
                 if "fan" in self._modules:
-                    self._data["fan"] = dtm[self._modules["fan"]]["at"][
-                        "speed"
-                    ]["value"]
+                    self._data["fan"] = dtm[self._modules["fan"]]["at"]["speed"][
+                        "value"
+                    ]
 
             if "name" in request["result"][0]["metaData"]:
                 self._data["device_name"] = request["result"][0]["metaData"]["name"]
@@ -260,7 +258,7 @@ class RyobiApiClient:
             "parkAssistLaser",
             "inflator",
             "btSpeaker",
-            "fan"
+            "fan",
         ]
         frame = {}
         try:
@@ -288,7 +286,7 @@ class RyobiApiClient:
             "parkAssistLaser": 1,
             "inflator": 4,
             "btSpeaker": 2,
-            "fan": 3
+            "fan": 3,
         }
         return module_type[module]
 
