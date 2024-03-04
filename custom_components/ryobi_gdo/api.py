@@ -336,6 +336,7 @@ class RyobiApiClient:
             "Websocket callback msg_type: %s msg: %s err: %s", msg_type, msg, error
         )
         if msg_type == SIGNAL_CONNECTION_STATE:
+            self.ws_listening = False
             if msg == STATE_CONNECTED:
                 LOGGER.debug("Websocket to %s successful", self.ws.url)
                 self.ws_listening = True
@@ -344,7 +345,6 @@ class RyobiApiClient:
                     "Websocket to %s disconnected",
                     self.ws.uri,
                 )
-                self.ws_listening = False
             # Stopped websockets without errors are expected during shutdown
             # and ignored
             elif msg == STATE_STOPPED and error:
@@ -353,12 +353,10 @@ class RyobiApiClient:
                     self.ws.url,
                     error,
                 )
-                self.ws_listening = False
             # Flag websocket as not listening
             # STATE_STOPPED with no error
             else:
                 LOGGER.debug("Websocket state: %s error: %s", msg, error)
-                self.ws_listening = False
 
         elif msg_type == "data":
             message = msg
