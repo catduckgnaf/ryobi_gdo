@@ -39,6 +39,12 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self):
         """Return data."""
+        # Websocket dropped out handle reconnecting
+        if not self.client.ws_listening:
+            # Close any left over sessions
+            await self.client.ws_disconnect()
+            # Reconnect the websocket
+            await self.client.ws_connect()        
         result = await self.client.update()
         if result:
             self._data = self.client._data
