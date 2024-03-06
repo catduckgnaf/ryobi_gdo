@@ -170,6 +170,11 @@ class RyobiApiClient:
             if not result:
                 LOGGER.error("Problem refreshing API key.")
                 return False
+        
+        # Reconnect logic
+        if self.ws and not self.ws_listening:
+            self.ws_connect()
+
         update_ok = False
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
         data = {"username": self.username, "password": self.password}
