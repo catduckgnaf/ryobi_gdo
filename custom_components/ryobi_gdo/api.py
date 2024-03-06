@@ -6,7 +6,6 @@ import asyncio
 from collections import abc
 import json
 import logging
-from typing import Any
 
 import aiohttp  # type: ignore
 from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
@@ -81,7 +80,7 @@ class RyobiApiClient:
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
-    ) -> Optional[dict]:
+    ) -> dict | None:
         """Process HTTP requests."""
         async with aiohttp.ClientSession() as session:
             http_hethod = getattr(session, method)
@@ -95,9 +94,7 @@ class RyobiApiClient:
                         if not isinstance(reply, dict):
                             reply = None
                     except ValueError:
-                        LOGGER.warning(
-                            "Reply was not in JSON format: %s", rawReply
-                        )
+                        LOGGER.warning("Reply was not in JSON format: %s", rawReply)
 
                     if response.status in [404, 405, 500]:
                         LOGGER.warning("HTTP Error: %s", rawReply)
@@ -232,9 +229,9 @@ class RyobiApiClient:
                         "micEnable"
                     ]["value"]
                 if "fan" in self._modules:
-                    self._data["fan"] = dtm[self._modules["fan"]]["at"][
-                        "speed"
-                    ]["value"]
+                    self._data["fan"] = dtm[self._modules["fan"]]["at"]["speed"][
+                        "value"
+                    ]
 
             if "name" in request["result"][0]["metaData"]:
                 self._data["device_name"] = request["result"][0]["metaData"]["name"]
@@ -260,7 +257,7 @@ class RyobiApiClient:
             "parkAssistLaser",
             "inflator",
             "btSpeaker",
-            "fan"
+            "fan",
         ]
         frame = {}
         try:
@@ -288,7 +285,7 @@ class RyobiApiClient:
             "parkAssistLaser": 1,
             "inflator": 4,
             "btSpeaker": 2,
-            "fan": 3
+            "fan": 3,
         }
         return module_type[module]
 
@@ -339,6 +336,7 @@ class RyobiApiClient:
             "Websocket callback msg_type: %s msg: %s err: %s", msg_type, msg, error
         )
         if msg_type == SIGNAL_CONNECTION_STATE:
+            self.ws_listening = False
             if msg == STATE_CONNECTED:
                 LOGGER.debug("Websocket to %s successful", self.ws.url)
                 self.ws_listening = True
@@ -347,7 +345,6 @@ class RyobiApiClient:
                     "Websocket to %s disconnected",
                     self.ws.uri,
                 )
-                self.ws_listening = False
             # Stopped websockets without errors are expected during shutdown
             # and ignored
             elif msg == STATE_STOPPED and error:
@@ -356,7 +353,10 @@ class RyobiApiClient:
                     self.ws.url,
                     error,
                 )
-                self.ws_listening = False
+            # Flag websocket as not listening
+            # STATE_STOPPED with no error
+            else:
+                LOGGER.debug("Websocket state: %s error: %s", msg, error)
 
         elif msg_type == "data":
             message = msg
@@ -384,6 +384,8 @@ class RyobiApiClient:
 
             else:
                 LOGGER.error("Websocket unknown message received: %s", message)
+        else:
+            LOGGER.debug("Unknown message from websocket: %s type: %s", msg, msg_type)
 
     async def parse_message(self, data: dict) -> None:
         """Parse incoming updated data."""
@@ -554,8 +556,8 @@ class RyobiWebSocket:
             if self._state != STATE_STOPPED:
                 LOGGER.debug(
                     "Websocket msgType: %s CloseCode: %s",
-                    str(aiohttp.WSMsgType),
-                    str(aiohttp.WSCloseCode),
+                    str(aiohttp.WSMsgType.name),
+                    str(aiohttp.WSCloseCode.name),
                 )
                 await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
                 await asyncio.sleep(5)
