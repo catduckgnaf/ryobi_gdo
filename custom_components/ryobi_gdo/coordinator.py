@@ -60,7 +60,7 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
             # Close any left over sessions
             await self.client.ws_disconnect()
             # Reconnect the websocket
-            await self.client.ws_connect()        
+            await self.client.ws_connect()
 
     @callback
     async def websocket_update(self):
