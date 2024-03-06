@@ -170,7 +170,7 @@ class RyobiApiClient:
             if not result:
                 LOGGER.error("Problem refreshing API key.")
                 return False
-        
+
         # Reconnect logic
         if self.ws and not self.ws_listening:
             self.ws_connect()
