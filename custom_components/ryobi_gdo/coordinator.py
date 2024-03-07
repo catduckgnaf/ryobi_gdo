@@ -56,8 +56,6 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator):
     async def _websocket_check(self):
         """Handle reconnection of websocket."""
         if not self.client.ws_listening:
-            # Close any left over sessions
-            await self.client.ws_disconnect()
             # Reconnect the websocket
             await self.client.ws_connect()
 
