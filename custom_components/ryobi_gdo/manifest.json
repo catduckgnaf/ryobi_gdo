@@ -10,5 +10,5 @@
     "iot_class": "cloud_push",
     "issue_tracker": "https://github.com/catduckgnaf/ryobi_gdo/issues",
     "requirements": [],
-    "version": "0.2.9"
+    "version": "0.3.0"
 }
