@@ -611,7 +611,7 @@ class RyobiWebSocket:
         except Exception as err:
             LOGGER.error("Websocket error sending message: %s", err)
             self._error_reason = err
-            await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)            
+            await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
         return False
 
     def redact_api_key(self, message: dict) -> dict:
