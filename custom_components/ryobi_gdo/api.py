@@ -348,7 +348,7 @@ class RyobiApiClient:
             elif msg == STATE_DISCONNECTED:
                 LOGGER.debug(
                     "Websocket to %s disconnected",
-                    self.ws.uri,
+                    self.ws.url,
                 )
             # Stopped websockets without errors are expected during shutdown
             # and ignored
