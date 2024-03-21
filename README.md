@@ -37,6 +37,6 @@ Please open an Issue and paste DEBUG logs or I can't help as easily. PLEASE remo
  - [x] Fully Support G125
  - [-] Get identities for all modules. (currently a work in progress.).
 ### 'Thank You's
- - [Madj42](https://github.com/Madj42) and his [ryobi_gdo3](https://github.com/Madj42/ryobi_gdo3) integratio.
+ - [Madj42](https://github.com/Madj42) and his [ryobi_gdo3](https://github.com/Madj42/ryobi_gdo3) integration.
  - [**CJOWood**](https://github.com//CJOWood/) and his [**Ryobi Garage**](https://github.com/CJOWood/ryobi_garage/) for initial websocket work.
  - [**firstof9**](https://github.com//firstof9/) and his enthusium for helping with this project.
