@@ -42,7 +42,7 @@ BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
     ),
     "sensorFlag": BinarySensorEntityDescription(
         name="Safety Sensor",
-        key="saftey",
+        key="safety",
         icon="mdi:laser-pointer",
         entity_registry_enabled_default=False,
     ),
