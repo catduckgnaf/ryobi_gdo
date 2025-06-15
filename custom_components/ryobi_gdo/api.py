@@ -20,7 +20,6 @@ from homeassistant.core import callback
 
 from .const import (
     DEVICE_GET_ENDPOINT,
-    DEVICE_SET_ENDPOINT,
     GARAGE_UPDATE_MSG,
     HOST_URI,
     LOGIN_ENDPOINT,
@@ -70,6 +69,7 @@ class RyobiApiClient:
         self.callback: abc.Callable | None = None
         self.socket_state = None
         self.ws_listening = False
+        self._ws_listen_task = None
         self._modules = {}
         # FIX: Store the session passed from Home Assistant
         self.session = session
@@ -321,7 +321,7 @@ class RyobiApiClient:
             LOGGER.debug("Using new event loop...")
 
         if not self.ws_listening:
-            loop.create_task(self.ws.listen())
+            self._ws_listen_task = loop.create_task(self.ws.listen())
 
     @callback
     async def _process_message(
