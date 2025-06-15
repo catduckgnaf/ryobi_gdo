@@ -2,11 +2,11 @@
 
 NAME = "Ryobi GDO"
 DOMAIN = "ryobi_gdo"
-VERSION = "0.1.1"
+VERSION = "0.4.0"
 ATTRIBUTION = "Data provided by Ryobi"
 ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 
-PLATFORMS = ["cover", "switch", "sensor", "binary_sensor"]
+PLATFORMS = ["binary_sensor", "cover", "sensor", "switch"]
 
 HOST_URI = "tti.tiwiconnect.com"
 LOGIN_ENDPOINT = "api/login"
@@ -34,3 +34,6 @@ WS_OK = "OK"
 SOCK_CONNECTED = "Open"
 SOCK_CLOSE = "Close"
 SOCK_ERROR = "Error"
+
+# Time in seconds before websocket inactivity triggers reconnect
+WS_INACTIVITY_TIMEOUT = 360

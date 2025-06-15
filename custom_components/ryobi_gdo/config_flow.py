@@ -7,9 +7,13 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.config_validation as cv
 
 from .api import RyobiApiClient
 from .const import CONF_DEVICE_ID, DOMAIN
+
+CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
@@ -18,14 +22,14 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_CLOUD_POLL
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize."""
         self._data = {}
 
     async def async_step_user(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors = {}
         if user_input is not None:
@@ -64,7 +68,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_user_2(
         self,
         user_input: dict | None = None,
-    ) -> config_entries.FlowResult:
+    ) -> config_entries.ConfigFlowResult:
         """Handle a flow initialized by the user."""
         errors = {}
         if user_input is not None:
@@ -91,14 +95,13 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _test_credentials(self, username: str, password: str) -> bool:
         """Validate credentials and retrieve device IDs."""
-        client = RyobiApiClient(username=username, password=password)
-
-        # Validate credentials
+        session = async_get_clientsession(self.hass)
+        client = RyobiApiClient(username=username, password=password, session=session)
         return await client.get_api_key()
 
     async def _get_device_ids(self, username: str, password: str) -> list:
         """Return list of device IDs."""
-        client = RyobiApiClient(username=username, password=password)
-
-        # Get the devices associated with account
-        return await client.get_devices()
+        session = async_get_clientsession(self.hass)
+        client = RyobiApiClient(username=username, password=password, session=session)
+        devices = await client.get_devices()
+        return list(devices.keys())

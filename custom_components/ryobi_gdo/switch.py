@@ -90,7 +90,8 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         elif self._type == "inflator":
             LOGGER.debug("Turning off inflator")
             await self.coordinator.send_command("inflator", "moduleState", False)
-            await self.coordinator._async_update_data()
+            # FIX: Use async_request_refresh() to ask the coordinator to update.
+            await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: dict[str, Any]):
         """Turn on light."""
@@ -100,7 +101,8 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
         elif self._type == "inflator":
             LOGGER.debug("Turning on inflator")
             await self.coordinator.send_command("inflator", "moduleState", True)
-            await self.coordinator._async_update_data()
+            # FIX: Use async_request_refresh() to ask the coordinator to update.
+            await self.coordinator.async_request_refresh()
 
     @property
     def extra_state_attributes(self) -> dict | None:

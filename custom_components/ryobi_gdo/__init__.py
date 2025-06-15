@@ -6,8 +6,10 @@ import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import Config, HomeAssistant
+from homeassistant.core import HomeAssistant
+from homeassistant.core_config import Config
 from homeassistant.exceptions import ConfigEntryNotReady
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import COORDINATOR, DOMAIN, ISSUE_URL, PLATFORMS, VERSION
 from .coordinator import RyobiDataUpdateCoordinator
@@ -31,25 +33,21 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         ISSUE_URL,
     )
     interval = 60  # Time in seconds
-    coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry)
+    session = async_get_clientsession(hass)
+    coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry, session)
 
     # Fetch initial data so we have data when entities subscribe
-    await coordinator.async_refresh()
+    await coordinator.async_config_entry_first_refresh()
 
     if not coordinator.last_update_success:
         raise ConfigEntryNotReady
-    if not coordinator.client.ws.state != "connected":
-        raise ConfigEntryNotReady
-
-    # Start websocket listener
-    coordinator.client.ws_connect()
 
     hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
 
-    for platform in PLATFORMS:
-        hass.async_create_task(
-            hass.config_entries.async_forward_entry_setups(config_entry, platform)
-        )
+    # Start websocket listener
+    await coordinator.client.ws_connect()
+
+    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
 
     return True
 
