@@ -1,16 +1,16 @@
-ARG BUILD_FROM BUILD_FROM_TAG
-FROM python:3.11-slim
+# Start from a standard Python 3.11 image.
+FROM python:3.11-slim-bookworm
 
-ENV DEVCONTAINER=true
+# Set the working directory in the container to /workspaces/ryobi_gdo
+WORKDIR /workspaces/ryobi_gdo
 
-COPY ./container /container
-COPY ./install /install
+# Copy the requirements files into the container
+COPY requirements.txt .
+COPY requirements-test.txt .
+COPY requirements-dev.txt .
 
-ARG OS_VARIANT CONTAINER_TYPE
-RUN \
-    bash /install/init.sh \
-    && bash /install/container.sh \
-    && bash /install/integration.sh \
-    && bash /install/cleanup.sh
+# Install the Python dependencies
+RUN pip install --no-cache-dir -r requirements-dev.txt
 
-CMD ["bash"]
+# Copy the rest of the application code into the container
+COPY . .
