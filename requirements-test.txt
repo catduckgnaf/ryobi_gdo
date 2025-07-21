@@ -1,6 +1,6 @@
 -r requirements.txt
 asynctest~=0.13
-mypy==1.16.0
+mypy==1.17.0
 pylint-strict-informational==0.1
 pytest>=7.2
 pytest-cov>=3.0
