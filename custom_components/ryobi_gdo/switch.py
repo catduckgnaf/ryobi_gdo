@@ -1,58 +1,63 @@
 """Ryobi platform for the switch component."""
 
+from __future__ import annotations
+
 import logging
-from typing import Any, cast, Final
+from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
-from homeassistant.config_entries import ConfigEntry
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+from . import RyobiConfigEntry
+from .const import DOMAIN
+from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-SWITCH_TYPES: Final[dict[str, SwitchEntityDescription]] = {
-    "light": SwitchEntityDescription(
-        name="Light",
-        key="light_state",
-    ),
-    "inflator": SwitchEntityDescription(
+SWITCH_TYPES: tuple[SwitchEntityDescription, ...] = (
+    SwitchEntityDescription(
         name="Inflator",
         key="inflator",
+        icon="mdi:tire",
         entity_registry_enabled_default=False,
     ),
-}
+)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
-    """Set up the OpenEVSE switches."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: RyobiConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up the Ryobi switches."""
+    coordinator = entry.runtime_data
+    switches: list[RyobiSwitch] = []
 
-    switches = []
-    for switch in SWITCH_TYPES:
-        switches.append(RyobiSwitch(hass, entry, coordinator, SWITCH_TYPES[switch]))
+    for description in SWITCH_TYPES:
+        if description.key in coordinator.client._modules or description.key in coordinator.data:
+            switches.append(RyobiSwitch(coordinator, description))
 
-    async_add_entities(switches, False)
+    async_add_entities(switches)
 
 
-class RyobiSwitch(CoordinatorEntity, SwitchEntity):
-    """Representation of a ryobi switch."""
+class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
+    """Representation of a Ryobi accessory switch."""
+
+    _attr_has_entity_name = True
 
     def __init__(
         self,
-        hass,
-        config_entry: ConfigEntry,
-        coordinator: str,
+        coordinator: RyobiDataUpdateCoordinator,
         description: SwitchEntityDescription,
-    ):
+    ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
-        self.device_id = config_entry.data[CONF_DEVICE_ID]
-        self.coordinator = coordinator
-        self._type = description.key
-        self._attr_name = f"{coordinator.data['device_name']} {description.name}"
-        self._attr_unique_id = f"ryobi_gdo_{description.name}_{self.device_id}"
+        self.entity_description = description
+        self.device_id = coordinator.device_id
+        self._attr_unique_id = f"{self.device_id}_{description.key}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -61,54 +66,23 @@ class RyobiSwitch(CoordinatorEntity, SwitchEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name="Ryobi Garage Door Opener",
+            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
         )
 
     @property
-    def name(self) -> str:
-        """Return the name of the entity."""
-        return self._attr_name
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return True if self.coordinator.client.ws_listening else False
-
-    @property
     def is_on(self) -> bool:
-        """Return if the light is off."""
-        data = self.coordinator._data
-        if self._type not in data:
-            return False
-        return cast(bool, data[self._type] == 1)
+        """Return True if the switch is on."""
+        state = self.coordinator.data.get(self.entity_description.key)
+        return bool(state == 1 or state is True)
 
-    async def async_turn_off(self, **kwargs: dict[str, Any]):
-        """Turn off light."""
-        if self._type == "light_state":
-            LOGGER.debug("Turning off light")
-            await self.coordinator.send_command("garageLight", "lightState", False)
-        elif self._type == "inflator":
-            LOGGER.debug("Turning off inflator")
-            await self.coordinator.send_command("inflator", "moduleState", False)
-            # FIX: Use async_request_refresh() to ask the coordinator to update.
-            await self.coordinator.async_request_refresh()
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        """Turn off the switch."""
+        LOGGER.debug("Turning off %s for device %s", self.entity_description.key, self.device_id)
+        await self.coordinator.send_command(self.entity_description.key, "moduleState", False)
+        await self.coordinator.async_request_refresh()
 
-    async def async_turn_on(self, **kwargs: dict[str, Any]):
-        """Turn on light."""
-        if self._type == "light_state":
-            LOGGER.debug("Turning on light")
-            await self.coordinator.send_command("garageLight", "lightState", True)
-        elif self._type == "inflator":
-            LOGGER.debug("Turning on inflator")
-            await self.coordinator.send_command("inflator", "moduleState", True)
-            # FIX: Use async_request_refresh() to ask the coordinator to update.
-            await self.coordinator.async_request_refresh()
-
-    @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return sesnsor attributes."""
-        attrs = {}
-        if self._type == "light_state":
-            if "light_attributes" in self.coordinator.data:
-                attrs.update(self.coordinator.data["light_attributes"])
-        return attrs
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        """Turn on the switch."""
+        LOGGER.debug("Turning on %s for device %s", self.entity_description.key, self.device_id)
+        await self.coordinator.send_command(self.entity_description.key, "moduleState", True)
+        await self.coordinator.async_request_refresh()

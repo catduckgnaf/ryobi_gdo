@@ -1,74 +1,51 @@
-"""Ryobi component."""
+"""Ryobi garage door opener integration."""
 
 from __future__ import annotations
 
-import asyncio
 import logging
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
-from homeassistant.core_config import Config
-from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import COORDINATOR, DOMAIN, ISSUE_URL, PLATFORMS, VERSION
+from .const import ISSUE_URL, PLATFORMS, VERSION
 from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-
-async def async_setup(  # pylint: disable-next=unused-argument
-    hass: HomeAssistant, config: Config
-) -> bool:
-    """Disallow configuration via YAML."""
-    return True
+type RyobiConfigEntry = ConfigEntry[RyobiDataUpdateCoordinator]
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Set up this integration using UI."""
-    hass.data.setdefault(DOMAIN, {})
+async def async_setup_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> bool:
+    """Set up Ryobi GDO from a config entry."""
     LOGGER.info(
-        "Version %s is starting, if you have any issues please report them here: %s",
+        "Ryobi GDO integration version %s starting. Issue tracker: %s",
         VERSION,
         ISSUE_URL,
     )
-    interval = 60  # Time in seconds
-    session = async_get_clientsession(hass)
-    coordinator = RyobiDataUpdateCoordinator(hass, interval, config_entry, session)
 
-    # Fetch initial data so we have data when entities subscribe
+    coordinator = RyobiDataUpdateCoordinator(hass, interval=60, entry=entry)
+
+    # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
 
-    if not coordinator.last_update_success:
-        raise ConfigEntryNotReady
-
-    hass.data[DOMAIN][config_entry.entry_id] = {COORDINATOR: coordinator}
+    entry.runtime_data = coordinator
 
     # Start websocket listener
     await coordinator.client.ws_connect()
 
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Handle removal of an entry."""
-    LOGGER.debug("Attempting to unload entities from the %s integration", DOMAIN)
+async def async_unload_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> bool:
+    """Unload a config entry."""
+    LOGGER.debug("Unloading Ryobi GDO integration for entry: %s", entry.entry_id)
 
-    unload_ok = all(
-        await asyncio.gather(
-            *[
-                hass.config_entries.async_forward_entry_unload(config_entry, platform)
-                for platform in PLATFORMS
-            ]
-        )
-    )
-    coordinator = hass.data[DOMAIN][config_entry.entry_id][COORDINATOR]
-    await coordinator.client.ws_disconnect()
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     if unload_ok:
-        LOGGER.debug("Successfully removed entities from the %s integration", DOMAIN)
-        hass.data[DOMAIN].pop(config_entry.entry_id)
+        coordinator = entry.runtime_data
+        await coordinator.client.ws_disconnect()
 
     return unload_ok

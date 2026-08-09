@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Final
+from typing import Any
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -10,60 +10,71 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import PERCENTAGE, SIGNAL_STRENGTH_DECIBELS
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import ATTR_ATTRIBUTION, ATTRIBUTION, CONF_DEVICE_ID, COORDINATOR, DOMAIN
+from . import RyobiConfigEntry
+from .const import ATTRIBUTION, DOMAIN
+from .coordinator import RyobiDataUpdateCoordinator
 
-SENSOR_TYPES: Final[dict[str, SensorEntityDescription]] = {
-    "battery_level": SensorEntityDescription(
-        name="Battery Level",
-        icon="mdi:battery",
+SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
+    SensorEntityDescription(
+        name="Battery",
         key="battery_level",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
-    "wifi_rssi": SensorEntityDescription(
-        name="WiFi Signal",
-        icon="mdi:wifi",
+    SensorEntityDescription(
+        name="Wi-Fi Signal",
         key="wifi_rssi",
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
+        device_class=SensorDeviceClass.SIGNAL_STRENGTH,
+        state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
-}
+)
 
 
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: RyobiConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the Ryobi GDO sensors."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data
+    sensors: list[RyobiSensor] = []
 
-    sensors = []
-    for sensor in SENSOR_TYPES:  # pylint: disable=consider-using-dict-items
-        sensors.append(RyobiSensor(SENSOR_TYPES[sensor], coordinator, entry))
+    for description in SENSOR_TYPES:
+        # Check module presence: only add battery sensor if backup charger is present
+        if description.key == "battery_level":
+            if "backupCharger" in coordinator.client._modules or "battery_level" in coordinator.data:
+                sensors.append(RyobiSensor(coordinator, description))
+        else:
+            sensors.append(RyobiSensor(coordinator, description))
 
-    async_add_entities(sensors, False)
+    async_add_entities(sensors)
 
 
-class RyobiSensor(CoordinatorEntity, SensorEntity):
-    """Implementation of an Ryobi sensor."""
+class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
+    """Implementation of a Ryobi sensor."""
+
+    _attr_has_entity_name = True
+    _attr_attribution = ATTRIBUTION
 
     def __init__(
         self,
-        sensor_description: SensorEntityDescription,
-        coordinator: str,
-        config_entry: ConfigEntry,
+        coordinator: RyobiDataUpdateCoordinator,
+        description: SensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._config = config_entry
-        self.entity_description = sensor_description
-        self._name = sensor_description.name
-        self.device_id = config_entry.data[CONF_DEVICE_ID]
-        self._attr_name = f"{coordinator.data['device_name']} {self._name}"
-        self._attr_unique_id = f"ryobi_gdo_{self._name}_{self.device_id}"
+        self.entity_description = description
+        self.device_id = coordinator.device_id
+        self._attr_unique_id = f"{self.device_id}_{description.key}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -72,38 +83,10 @@ class RyobiSensor(CoordinatorEntity, SensorEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name="Ryobi Garage Door Opener",
+            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
         )
 
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
-        return self.coordinator.data[self.entity_description.key]
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
-        return self.entity_description.icon
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        data = self.coordinator.data
-        if self.entity_description.key not in data or (
-            self.entity_description.key in data
-            and data[self.entity_description.key] is None
-        ):
-            return False
-        return self.coordinator.last_update_success
-
-    @property
-    def should_poll(self) -> bool:
-        """No need to poll. Coordinator notifies entity of updates."""
-        return False
-
-    @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return sesnsor attributes."""
-        attrs = {}
-        attrs[ATTR_ATTRIBUTION] = ATTRIBUTION
-        return attrs
+        return self.coordinator.data.get(self.entity_description.key)
