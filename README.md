@@ -1,42 +1,70 @@
-## Ryobi Garage Door Opener - HA Custom Component
+# Ryobi Garage Door Opener (GDO) Integration for Home Assistant
 
-This integration will request all of the Garage Door devices linked to your Ryobi account and automatically add them into Home Assistant, through a standard config flow.
+[![HACS Badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![GitHub Release](https://img.shields.io/github/v/release/catduckgnaf/ryobi_gdo?style=for-the-badge)](https://github.com/catduckgnaf/ryobi_gdo/releases)
+[![License](https://img.shields.io/github/license/catduckgnaf/ryobi_gdo?style=for-the-badge)](LICENSE.md)
 
-The Garage Door must first be setup and added through Ryobi's app. Once you've created an account and can successfully control the garage door from the app, you can use your login details with this integration.
+A Home Assistant custom component integration to control and monitor the **Ryobi Ultra-Quiet Garage Door Opener (GD200 / GD201 / GD125)** and its modular accessories via real-time WebSocket push updates and cloud API.
 
-## Installation.
+---
 
-### Install from HACS (recommended)
+## ✨ Features
 
-1. Have HACS installed, this will allow you to easily manage and track updates.
-2. Search in HACS for "Ryobi (When its added)" integration.
-3. Add [https://github.com/catduckgnaf/ryobi_gdo](https://github.com/catduckgnaf/ryobi_gdo) as custom respository.
-4. Click Install below the found integration.
+- 🚪 **Cover Entity**: Full open, close, opening, and closing states with real-time feedback.
+- 💡 **Light Control**: Native light entity to control the overhead LED light.
+- 🔋 **Battery Monitoring**: Battery charge level sensor for the backup battery module.
+- 📶 **Wi-Fi Signal**: Diagnostic Wi-Fi RSSI strength sensor.
+- 🛡️ **Safety & Motion Sensors**: Safety beam obstruction sensor, built-in motion detection, and vacation mode sensors.
+- 🔌 **Modular Accessories**: Dynamic support for Ryobi plug-in modules (Inflator switch, Park Assist laser, Bluetooth Speaker & Mic, Fan).
+- ⚡ **Real-Time Push**: Persistent WebSocket connection with automatic exponential backoff reconnection for instant state updates.
+- ⚙️ **Modern Config Flow**: Easy setup via the Home Assistant UI with friendly opener names and unique ID protection.
 
-# Issues
+---
 
-Please open an Issue and paste DEBUG logs or I can't help as easily. PLEASE remove all personal login details, including your username, password, device IDs, and API Keys!!
+## 📦 Installation
 
+### Option 1: Via HACS (Recommended)
 
+1. Open **HACS** in your Home Assistant dashboard.
+2. Click the three dots in the top right corner and choose **Custom repositories**.
+3. Paste `https://github.com/catduckgnaf/ryobi_gdo` and select Category **Integration**.
+4. Click **Download**, then restart Home Assistant when prompted.
 
-### Functionality / To-Do 
- - [x] HTTP: Login to check details and get API Key.
- - [x] HTTP: Get devices list to check for more than 1 GDO.
- - [x] HTTP: Get device state for each device.
- - [x] WS: Authenticate using API Key.
- - [x] WS: Subscribe to device notifications using device ID.  
- - [x] WS: Listen for device updates and update internal state.
- - [x] Implement RyobiGarage CoverEntity in HA.
- - [x] Set the unique_id properly using device_id, mac, serial and name.
- - [x] WS: Send open/close command to sever
- - [ ] Support Vacation mode toggle
- - [ ] WS: Check for and implement set_position command (look into app's "preset" functionality).
- - [ ] WS: Check for and implement stop command.
- - [x] Implement RyobiGarage LightEntity in HA.
- - [x] Implement Motion Sensor in HA.
- - [x] Fully Support G125
- - [-] Get identities for all modules. (currently a work in progress.).
-### 'Thank You's
- - [Madj42](https://github.com/Madj42) and his [ryobi_gdo3](https://github.com/Madj42/ryobi_gdo3) integration.
- - [**CJOWood**](https://github.com//CJOWood/) and his [**Ryobi Garage**](https://github.com/CJOWood/ryobi_garage/) for initial websocket work.
- - [**firstof9**](https://github.com//firstof9/) and his enthusium for helping with this project.
+### Option 2: Manual Installation
+
+1. Download the latest release `.zip` from [Releases](https://github.com/catduckgnaf/ryobi_gdo/releases).
+2. Extract and copy the `custom_components/ryobi_gdo` directory into your Home Assistant `config/custom_components/` folder.
+3. Restart Home Assistant.
+
+---
+
+## ⚙️ Configuration
+
+1. In Home Assistant, navigate to **Settings** > **Devices & Services**.
+2. Click **Add Integration** and search for **Ryobi Garage Door Opener**.
+3. Enter your Ryobi account username and password.
+4. Select the Garage Door Opener you want to integrate from the dropdown.
+
+---
+
+## 🛠️ Supported Entities
+
+| Platform | Entity | Description |
+| :--- | :--- | :--- |
+| `cover` | **Garage Door** | Open/close and state monitoring |
+| `light` | **Light** | Overhead garage light on/off |
+| `sensor` | **Battery** | Battery charge percentage (if backup charger installed) |
+| `sensor` | **Wi-Fi Signal** | Signal strength (dBm) |
+| `binary_sensor` | **Motion** | Built-in motion sensor detection |
+| `binary_sensor` | **Safety Sensor** | Laser/safety beam obstruction status |
+| `binary_sensor` | **Vacation Mode** | Vacation lockout switch state |
+| `binary_sensor` | **Park Assist Laser** | Laser module status |
+| `binary_sensor` | **Bluetooth Speaker** | Bluetooth speaker connection |
+| `binary_sensor` | **Server Connection** | Cloud WebSocket link health |
+| `switch` | **Inflator** | Air compressor module control |
+
+---
+
+## 🐞 Issues and Contributions
+
+If you encounter any issues, please report them on the [GitHub Issue Tracker](https://github.com/catduckgnaf/ryobi_gdo/issues).

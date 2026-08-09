@@ -4,17 +4,17 @@ from __future__ import annotations
 
 import asyncio
 from collections import abc
+import copy
 import json
 import logging
 
-import aiohttp  # type: ignore
+import aiohttp
 
 from .const import DEVICE_SET_ENDPOINT, HOST_URI
 
 LOGGER = logging.getLogger(__name__)
 
 MAX_FAILED_ATTEMPTS = 5
-INFO_LOOP_RUNNING = "Event loop already running, not creating new one."
 
 # Websocket errors
 ERROR_AUTH_FAILURE = "Authorization failure"
@@ -32,19 +32,24 @@ STATE_STOPPED = "stopped"
 class RyobiWebSocket:
     """Represent a websocket connection to Ryobi servers."""
 
-    # FIX: Modified constructor to accept aiohttp session
-    def __init__(self, callback, username: str, apikey: str, device: str, session: aiohttp.ClientSession) -> None:
+    def __init__(
+        self,
+        callback: abc.Callable,
+        username: str,
+        apikey: str,
+        device: str,
+        session: aiohttp.ClientSession,
+    ) -> None:
         """Initialize a RyobiWebSocket instance."""
-        # FIX: Use the passed session instead of creating a new one
         self.session = session
         self.url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
         self._user = username
         self._apikey = apikey
         self._device_id = device
-        self.callback: abc.Callable = callback
-        self._state = None
-        self._error_reason = None
-        self._ws_client = None
+        self.callback = callback
+        self._state: str | None = None
+        self._error_reason: str | None = None
+        self._ws_client: aiohttp.ClientWebSocketResponse | None = None
         self.failed_attempts = 0
 
     @property
@@ -52,17 +57,16 @@ class RyobiWebSocket:
         """Return the current state."""
         return self._state
 
-    @state.setter
-    async def state(self, value) -> None:
-        """Set the state."""
+    async def _set_state(self, value: str) -> None:
+        """Update connection state and invoke callback."""
         self._state = value
         LOGGER.debug("Websocket state: %s", value)
         await self.callback(SIGNAL_CONNECTION_STATE, value, self._error_reason)
         self._error_reason = None
 
-    async def running(self):
+    async def running(self) -> None:
         """Open a persistent websocket connection and act on events."""
-        await RyobiWebSocket.state.fset(self, STATE_STARTING)
+        await self._set_state(STATE_STARTING)
 
         header = {"Connection": "keep-alive, Upgrade", "handshakeTimeout": "10000"}
 
@@ -71,7 +75,7 @@ class RyobiWebSocket:
                 self.url,
                 heartbeat=15,
                 headers=header,
-                receive_timeout=5 * 60,  # Should see something from Ryobi about every 5 minutes
+                receive_timeout=300,  # 5 minutes
             ) as ws_client:
                 self._ws_client = ws_client
 
@@ -81,7 +85,7 @@ class RyobiWebSocket:
                     await asyncio.sleep(0.5)
                     await self.websocket_subscribe()
 
-                await RyobiWebSocket.state.fset(self, STATE_CONNECTED)
+                await self._set_state(STATE_CONNECTED)
                 self.failed_attempts = 0
 
                 async for message in ws_client:
@@ -89,66 +93,73 @@ class RyobiWebSocket:
                         break
 
                     if message.type == aiohttp.WSMsgType.TEXT:
-                        msg = message.json()
-                        await self.callback("data", msg)
+                        try:
+                            msg = message.json()
+                            await self.callback("data", msg)
+                        except (ValueError, TypeError) as parse_err:
+                            LOGGER.warning("Failed to decode websocket JSON: %s", parse_err)
 
                     elif message.type == aiohttp.WSMsgType.CLOSED:
-                        LOGGER.warning("Websocket connection closed")
+                        LOGGER.warning("Websocket connection closed by server")
                         break
 
                     elif message.type == aiohttp.WSMsgType.ERROR:
-                        LOGGER.error("Websocket error")
+                        LOGGER.error("Websocket received error message: %s", ws_client.exception())
                         break
+
         except aiohttp.ClientResponseError as error:
             if error.status == 401:
                 LOGGER.error("Credentials rejected: %s", error)
                 self._error_reason = ERROR_AUTH_FAILURE
             else:
-                LOGGER.error("Unexpected response received: %s", error)
+                LOGGER.error("Unexpected response received from server: %s", error)
                 self._error_reason = ERROR_UNKNOWN
-            await RyobiWebSocket.state.fset(self, STATE_STOPPED)
+            await self._set_state(STATE_STOPPED)
+
         except (aiohttp.ClientConnectionError, asyncio.TimeoutError) as error:
             if self.failed_attempts >= MAX_FAILED_ATTEMPTS:
                 self._error_reason = ERROR_TOO_MANY_RETRIES
-                await RyobiWebSocket.state.fset(self, STATE_STOPPED)
+                await self._set_state(STATE_STOPPED)
             elif self._state != STATE_STOPPED:
-                retry_delay = min(2 ** (self.failed_attempts - 1) * 30, 300)
                 self.failed_attempts += 1
-                LOGGER.error(
-                    "Websocket connection failed, retrying in %ds: %s",
+                retry_delay = min(2 ** (self.failed_attempts - 1) * 5, 120)
+                LOGGER.warning(
+                    "Websocket connection failed (attempt %d/%d), retrying in %ds: %s",
+                    self.failed_attempts,
+                    MAX_FAILED_ATTEMPTS,
                     retry_delay,
                     error,
                 )
-                await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
+                await self._set_state(STATE_DISCONNECTED)
                 await asyncio.sleep(retry_delay)
+
         except Exception as error:  # pylint: disable=broad-except
             if self._state != STATE_STOPPED:
-                LOGGER.exception("Unexpected exception occurred: %s", error)
+                LOGGER.exception("Unexpected exception in websocket loop: %s", error)
                 self._error_reason = ERROR_UNKNOWN
-                await RyobiWebSocket.state.fset(self, STATE_STOPPED)
+                await self._set_state(STATE_STOPPED)
+
         else:
             if self._state != STATE_STOPPED:
-                LOGGER.debug(
-                    "Websocket msgType: %s CloseCode: %s",
-                    str(aiohttp.WSMsgType.name),
-                    str(aiohttp.WSCloseCode.name),
-                )
-                await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
+                LOGGER.debug("Websocket loop exited normally, disconnecting")
+                await self._set_state(STATE_DISCONNECTED)
                 await asyncio.sleep(5)
 
-    async def listen(self):
-        """Start the listening websocket."""
+    async def listen(self) -> None:
+        """Start the listening websocket loop."""
         self.failed_attempts = 0
         while self._state != STATE_STOPPED:
             await self.running()
 
-    async def close(self):
+    async def close(self) -> None:
         """Close the listening websocket."""
-        await RyobiWebSocket.state.fset(self, STATE_STOPPED)
+        await self._set_state(STATE_STOPPED)
+        if self._ws_client and not self._ws_client.closed:
+            await self._ws_client.close()
 
     async def websocket_auth(self) -> None:
         """Authenticate with Ryobi server."""
-        LOGGER.debug("Websocket attempting authenticate with server.")
+        LOGGER.debug("Websocket attempting to authenticate with server")
         auth_request = {
             "jsonrpc": "2.0",
             "id": 3,
@@ -164,7 +175,7 @@ class RyobiWebSocket:
             "jsonrpc": "2.0",
             "id": 3,
             "method": "wskSubscribe",
-            "params": {"topic": self._device_id + ".wskAttributeUpdateNtfy"},
+            "params": {"topic": f"{self._device_id}.wskAttributeUpdateNtfy"},
         }
         await self.websocket_send(subscribe)
 
@@ -173,30 +184,33 @@ class RyobiWebSocket:
         json_message = json.dumps(message)
         LOGGER.debug("Websocket sending data: %s", self.redact_api_key(message))
 
+        if not self._ws_client or self._ws_client.closed:
+            LOGGER.error("Websocket client is not connected, cannot send message")
+            return False
+
         try:
             await self._ws_client.send_str(json_message)
-            LOGGER.debug("Websocket message sent.")
+            LOGGER.debug("Websocket message sent successfully")
             return True
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             LOGGER.error("Websocket error sending message: %s", err)
-            self._error_reason = err
-            await RyobiWebSocket.state.fset(self, STATE_DISCONNECTED)
-        return False
+            self._error_reason = str(err)
+            await self._set_state(STATE_DISCONNECTED)
+            return False
 
-    def redact_api_key(self, message: dict) -> dict:
-        """Clear API key data from logs."""
-        if "params" in message:
-            if "apiKey" in message["params"]:
-                message["params"]["apiKey"] = ""
-        return json.dumps(message)
+    def redact_api_key(self, message: dict) -> str:
+        """Clear API key data from log output without modifying original dict."""
+        safe_msg = copy.deepcopy(message)
+        if "params" in safe_msg and isinstance(safe_msg["params"], dict):
+            if "apiKey" in safe_msg["params"]:
+                safe_msg["params"]["apiKey"] = "***REDACTED***"
+        return json.dumps(safe_msg)
 
-    async def send_message(self, *args):
-        """Send message to API."""
+    async def send_message(self, *args) -> None:
+        """Send command message to API."""
         if self._state != STATE_CONNECTED:
-            LOGGER.warning("Websocket not yet connected, unable to send command.")
+            LOGGER.warning("Websocket not connected, unable to send command")
             return
-
-        LOGGER.debug("Send message args: %s", args)
 
         ws_command = {
             "jsonrpc": "2.0",
@@ -216,5 +230,4 @@ class RyobiWebSocket:
             args[0],
             args[1],
         )
-        LOGGER.debug("Full message: %s", ws_command)
         await self.websocket_send(ws_command)

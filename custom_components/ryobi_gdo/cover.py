@@ -3,63 +3,49 @@
 from __future__ import annotations
 
 import logging
-from typing import Final
+from typing import Any
 
 from homeassistant.components.cover import (
     CoverDeviceClass,
     CoverEntity,
-    CoverEntityDescription,
     CoverEntityFeature,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_CLOSED, STATE_CLOSING, STATE_OPENING
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+from . import RyobiConfigEntry
+from .const import DOMAIN
+from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-COVER_TYPES: Final[dict[str, CoverEntityDescription]] = {
-    "garage_door": CoverEntityDescription(
-        name="Garage Door",
-        key="door_state",
-        device_class=CoverDeviceClass.GARAGE,
-    ),
-}
 
-SUPPORTED_FEATURES = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
-
-
-async def async_setup_entry(hass, entry, async_add_entities):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: RyobiConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the cover entities."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
-
-    covers = []
-    for cover in COVER_TYPES:  # pylint: disable=consider-using-dict-items
-        covers.append(RyobiCover(COVER_TYPES[cover], coordinator, entry))
-
-    async_add_entities(covers, False)
+    coordinator = entry.runtime_data
+    async_add_entities([RyobiCover(coordinator)])
 
 
-class RyobiCover(CoordinatorEntity, CoverEntity):
-    """Representation of a ryobi cover."""
+class RyobiCover(CoordinatorEntity[RyobiDataUpdateCoordinator], CoverEntity):
+    """Representation of a Ryobi garage door cover."""
 
-    def __init__(
-        self,
-        sensor_description: CoverEntityDescription,
-        coordinator: str,
-        config_entry: ConfigEntry,
-    ) -> None:
-        """Initialize the sensor."""
+    _attr_has_entity_name = True
+    _attr_name = None
+    _attr_device_class = CoverDeviceClass.GARAGE
+    _attr_supported_features = CoverEntityFeature.OPEN | CoverEntityFeature.CLOSE
+
+    def __init__(self, coordinator: RyobiDataUpdateCoordinator) -> None:
+        """Initialize the cover entity."""
         super().__init__(coordinator)
-        self._config = config_entry
-        self.coordinator = coordinator
-        self.entity_description = sensor_description
-        self._name = sensor_description.name
-        self.device_id = config_entry.data[CONF_DEVICE_ID]
-        self._attr_name = f"{coordinator.data['device_name']} {self._name}"
-        self._attr_unique_id = f"ryobi_gdo_{self._name}_{self.device_id}"
+        self.device_id = coordinator.device_id
+        self._attr_unique_id = f"{self.device_id}_door"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -68,64 +54,44 @@ class RyobiCover(CoordinatorEntity, CoverEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name="Ryobi Garage Door Opener",
+            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
         )
-
-    @property
-    def name(self):
-        """Return the name of the cover."""
-        return self._name
 
     @property
     def is_opening(self) -> bool | None:
         """Return if the cover is opening or not."""
-        if self.coordinator.data[self.entity_description.key] is None:
+        state = self.coordinator.data.get("door_state")
+        if state is None:
             return None
-        return bool(self.coordinator.data[self.entity_description.key] == STATE_OPENING)
+        return state == STATE_OPENING
 
     @property
     def is_closing(self) -> bool | None:
         """Return if the cover is closing or not."""
-        if self.coordinator.data[self.entity_description.key] is None:
+        state = self.coordinator.data.get("door_state")
+        if state is None:
             return None
-        return bool(self.coordinator.data[self.entity_description.key] == STATE_CLOSING)
+        return state == STATE_CLOSING
 
     @property
     def is_closed(self) -> bool | None:
         """Return if the cover is closed or not."""
-        if self.coordinator.data[self.entity_description.key] is None:
+        state = self.coordinator.data.get("door_state")
+        if state is None:
             return None
-        return bool(self.coordinator.data[self.entity_description.key] == STATE_CLOSED)
+        return state == STATE_CLOSED
 
-    @property
-    def supported_features(self):
-        """Flag supported features."""
-        return SUPPORTED_FEATURES
-
-    async def async_close_cover(self, **kwargs):
+    async def async_close_cover(self, **kwargs: Any) -> None:
         """Close the cover."""
-        LOGGER.debug("Closing garage door")
+        LOGGER.debug("Closing garage door for device %s", self.device_id)
         await self.coordinator.send_command("garageDoor", "doorCommand", 0)
 
-    async def async_open_cover(self, **kwargs):
+    async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""
-        LOGGER.debug("Opening garage door")
+        LOGGER.debug("Opening garage door for device %s", self.device_id)
         await self.coordinator.send_command("garageDoor", "doorCommand", 1)
 
     @property
-    def should_poll(self) -> bool:
-        """No need to poll. Coordinator notifies entity of updates."""
-        return False
-
-    @property
-    def extra_state_attributes(self) -> dict | None:
-        """Return sesnsor attributes."""
-        attrs = {}
-        if "door_attributes" in self.coordinator.data:
-            attrs.update(self.coordinator.data["door_attributes"])
-        return attrs
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        return True if self.coordinator.client.ws_listening else False
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return sensor attributes."""
+        return self.coordinator.data.get("door_attributes", {})

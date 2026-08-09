@@ -1,115 +1,125 @@
 """Binary sensor platform for Ryobi GDO."""
 
+from __future__ import annotations
+
+from dataclasses import dataclass
 import logging
-from typing import Final, cast
 
 from homeassistant.components.binary_sensor import (
+    BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
-    BinarySensorDeviceClass,
 )
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import DeviceInfo, EntityCategory
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import CONF_DEVICE_ID, COORDINATOR, DOMAIN
+from . import RyobiConfigEntry
+from .const import DOMAIN
+from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-BINARY_SENSORS: Final[dict[str, BinarySensorEntityDescription]] = {
-    "park_assist": BinarySensorEntityDescription(
-        name="Park Assist",
-        icon="mdi:parking",
-        key="park_assist",
-    ),
-    "inflator": BinarySensorEntityDescription(
-        name="Inflator",
-        icon="mdi:car-tire-alert",
-        key="inflator",
-        entity_registry_enabled_default=False,
-    ),
-    "motion": BinarySensorEntityDescription(
+
+@dataclass(frozen=True, kw_only=True)
+class RyobiBinarySensorEntityDescription(BinarySensorEntityDescription):
+    """Class describing Ryobi binary sensor entities."""
+
+    required_module: str | None = None
+
+
+BINARY_SENSORS: tuple[RyobiBinarySensorEntityDescription, ...] = (
+    RyobiBinarySensorEntityDescription(
         name="Motion",
         key="motion",
         device_class=BinarySensorDeviceClass.MOTION,
-        entity_registry_enabled_default=False,
+        required_module="garageDoor",
     ),
-    "vacationMode": BinarySensorEntityDescription(
+    RyobiBinarySensorEntityDescription(
+        name="Safety Sensor",
+        key="safety",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        icon="mdi:laser-pointer",
+        required_module="garageDoor",
+    ),
+    RyobiBinarySensorEntityDescription(
         name="Vacation Mode",
         key="vacationMode",
         icon="mdi:wallet-travel",
+        required_module="garageDoor",
         entity_registry_enabled_default=False,
     ),
-    "sensorFlag": BinarySensorEntityDescription(
-        name="Safety Sensor",
-        key="safety",
+    RyobiBinarySensorEntityDescription(
+        name="Park Assist Laser",
+        key="park_assist",
         icon="mdi:laser-pointer",
-        entity_registry_enabled_default=False,
+        required_module="parkAssistLaser",
     ),
-    "btSpeaker": BinarySensorEntityDescription(
+    RyobiBinarySensorEntityDescription(
         name="Bluetooth Speaker",
         key="bt_speaker",
         icon="mdi:speaker",
+        required_module="btSpeaker",
         entity_registry_enabled_default=False,
     ),
-    "micStatus": BinarySensorEntityDescription(
+    RyobiBinarySensorEntityDescription(
         name="Microphone",
         key="micStatus",
         icon="mdi:microphone",
+        required_module="btSpeaker",
         entity_registry_enabled_default=False,
     ),
-    "websocket": BinarySensorEntityDescription(
+    RyobiBinarySensorEntityDescription(
         name="Server Connection",
         key="websocket",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
+        entity_category=EntityCategory.DIAGNOSTIC,
+        required_module=None,
     ),
-}
+)
 
 
-async def async_setup_entry(hass, entry, async_add_devices):
+async def async_setup_entry(
+    hass: HomeAssistant,
+    entry: RyobiConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Define the binary_sensor platform."""
-    coordinator = hass.data[DOMAIN][entry.entry_id][COORDINATOR]
+    coordinator = entry.runtime_data
+    binary_sensors: list[RyobiBinarySensor] = []
 
-    binary_sensors = []
-    for binary_sensor in BINARY_SENSORS:
-        binary_sensors.append(
-            RyobiBinarySensor(BINARY_SENSORS[binary_sensor], entry, coordinator)
-        )
+    for description in BINARY_SENSORS:
+        # Check module presence
+        if (
+            description.required_module is None
+            or description.required_module in coordinator.client._modules
+            or description.key in coordinator.data
+        ):
+            binary_sensors.append(RyobiBinarySensor(coordinator, description))
 
-    async_add_devices(binary_sensors, False)
+    async_add_entities(binary_sensors)
 
 
-class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
-    """ryobi_gdo binary_sensor class."""
+class RyobiBinarySensor(
+    CoordinatorEntity[RyobiDataUpdateCoordinator], BinarySensorEntity
+):
+    """Ryobi GDO binary sensor class."""
+
+    _attr_has_entity_name = True
+    entity_description: RyobiBinarySensorEntityDescription
 
     def __init__(
         self,
-        sensor_description: BinarySensorEntityDescription,
-        config_entry: ConfigEntry,
-        coordinator: str,
+        coordinator: RyobiDataUpdateCoordinator,
+        description: RyobiBinarySensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
-        self._config = config_entry
-        self.entity_description = sensor_description
-        self._name = sensor_description.name
-        self._key = sensor_description.key
-        self.device_id = config_entry.data[CONF_DEVICE_ID]
-
-        self._attr_name = f"{coordinator.data['device_name']} {self._name}"
-        self._attr_unique_id = f"ryobi_gdo_{self._name}_{self.device_id}"
-
-    @property
-    def available(self) -> bool:
-        """Return if entity is available."""
-        if self._key == "websocket":
-            return True  # This sensor should always be available
-        return True if self._key in self.coordinator.data else False
-
-    @property
-    def icon(self) -> str:
-        """Return the icon."""
-        return self.entity_description.icon
+        self.entity_description = description
+        self.device_id = coordinator.device_id
+        self._key = description.key
+        self._attr_unique_id = f"{self.device_id}_{description.key}"
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -118,17 +128,16 @@ class RyobiBinarySensor(CoordinatorEntity, BinarySensorEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name="Ryobi Garage Door Opener",
+            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
         )
 
     @property
-    def is_on(self) -> bool:
-        """Return True if the service is on."""
-        data = self.coordinator.data
+    def is_on(self) -> bool | None:
+        """Return True if the binary sensor is on."""
         if self._key == "websocket":
-            return self.coordinator.client.ws_listening
-        if self._key not in data:
-            LOGGER.info("binary_sensor [%s] not supported.", self._key)
+            return bool(self.coordinator.client.ws_listening)
+
+        val = self.coordinator.data.get(self._key)
+        if val is None:
             return None
-        LOGGER.debug("binary_sensor [%s]: %s", self._name, data[self._key])
-        return cast(bool, data[self._key] == 1)
+        return bool(val == 1 or val is True)

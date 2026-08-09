@@ -6,9 +6,9 @@ import asyncio
 from collections import abc
 import json
 import logging
+from typing import Any
 
-import aiohttp  # type: ignore
-from aiohttp.client_exceptions import ServerConnectionError, ServerTimeoutError
+import aiohttp
 
 from homeassistant.const import (
     STATE_CLOSED,
@@ -16,24 +16,22 @@ from homeassistant.const import (
     STATE_OPEN,
     STATE_OPENING,
 )
-from homeassistant.core import callback
 
 from .const import (
     DEVICE_GET_ENDPOINT,
     GARAGE_UPDATE_MSG,
     HOST_URI,
     LOGIN_ENDPOINT,
+    REQUEST_TIMEOUT,
     WS_AUTH_OK,
-    WS_CMD_ACK,
     WS_OK,
 )
 from .websocket import (
-    RyobiWebSocket,
     SIGNAL_CONNECTION_STATE,
     STATE_CONNECTED,
-    STATE_DISCONNECTED,
     STATE_STARTING,
     STATE_STOPPED,
+    RyobiWebSocket,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -41,6 +39,22 @@ LOGGER = logging.getLogger(__name__)
 METHOD = "method"
 PARAMS = "params"
 RESULT = "result"
+
+
+class RyobiApiError(Exception):
+    """Base exception for Ryobi API errors."""
+
+
+class RyobiAuthError(RyobiApiError):
+    """Exception for authentication errors."""
+
+
+class RyobiConnectionError(RyobiApiError):
+    """Exception for connection errors."""
+
+
+class APIKeyError(RyobiAuthError):
+    """Exception for missing API key."""
 
 
 class RyobiApiClient:
@@ -54,202 +68,224 @@ class RyobiApiClient:
         "4": "fault",
     }
 
-    # FIX: Modified constructor to accept aiohttp session from Home Assistant
-    def __init__(self, username: str, password: str, session: aiohttp.ClientSession, device_id: str | None = None):
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        session: aiohttp.ClientSession | None = None,
+        device_id: str | None = None,
+    ) -> None:
         """Initialize the API object."""
         self.username = username
         self.password = password
         self.device_id = device_id
-        self.door_state = None
-        self.light_state = None
-        self.battery_level = None
-        self.api_key = None
-        self._data = {}
-        self.ws = None
+        self.door_state: str | None = None
+        self.light_state: bool | None = None
+        self.battery_level: int | None = None
+        self.api_key: str | None = None
+        self._data: dict[str, Any] = {}
+        self.ws: RyobiWebSocket | None = None
         self.callback: abc.Callable | None = None
-        self.socket_state = None
+        self.socket_state: str | None = None
         self.ws_listening = False
-        self._ws_listen_task = None
-        self._modules = {}
-        # FIX: Store the session passed from Home Assistant
+        self._ws_listen_task: asyncio.Task | None = None
+        self._modules: dict[str, str] = {}
         self.session = session
 
-    # FIX: Modified to use the shared aiohttp session
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
     ) -> dict | None:
         """Process HTTP requests."""
-        http_hethod = getattr(self.session, method)
+        if self.session is None:
+            LOGGER.error("No aiohttp session available to process request")
+            return None
+
+        http_method = getattr(self.session, method.lower())
         LOGGER.debug("Connecting to %s using %s", url, method)
         reply = None
         try:
-            async with http_hethod(url, data=data) as response:
-                rawReply = await response.text()
-                try:
-                    reply = json.loads(rawReply)
-                    if not isinstance(reply, dict):
-                        reply = None
-                except ValueError:
-                    LOGGER.warning("Reply was not in JSON format: %s", rawReply)
+            async with asyncio.timeout(REQUEST_TIMEOUT):
+                async with http_method(url, data=data) as response:
+                    raw_reply = await response.text()
+                    try:
+                        reply = json.loads(raw_reply)
+                        if not isinstance(reply, dict):
+                            reply = None
+                    except ValueError:
+                        LOGGER.warning("Reply was not in JSON format: %s", raw_reply)
 
-                if response.status in [404, 405, 500]:
-                    LOGGER.warning("HTTP Error: %s", rawReply)
-        except (TimeoutError, ServerTimeoutError):
+                    if response.status in [401, 403]:
+                        LOGGER.warning("Authentication failed on %s: %s", url, raw_reply)
+                        return None
+                    if response.status in [404, 405, 500]:
+                        LOGGER.warning("HTTP Error %s: %s", response.status, raw_reply)
+        except TimeoutError:
             LOGGER.error("Timeout connecting to %s", url)
-        except ServerConnectionError:
-            LOGGER.error("Problem connecting to server at %s", url)
+        except aiohttp.ClientError as err:
+            LOGGER.error("Client error connecting to %s: %s", url, err)
+        except Exception as err:  # pylint: disable=broad-except
+            LOGGER.exception("Unexpected error during HTTP request to %s: %s", url, err)
         return reply
 
     async def get_api_key(self) -> bool:
-        """Get api_key from Ryobi."""
-        auth_ok = False
+        """Get API key from Ryobi."""
         url = f"https://{HOST_URI}/{LOGIN_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
-        method = "post"
-        request = await self._process_request(url, method, data)
+        request = await self._process_request(url, "post", data)
         if request is None:
-            return auth_ok
+            return False
         try:
             resp_meta = request["result"]["metaData"]
             self.api_key = resp_meta["wskAuthAttempts"][0]["apiKey"]
-            auth_ok = True
-        except KeyError:
-            LOGGER.error("Exception while parsing Ryobi answer to get API key")
-        return auth_ok
+            return True
+        except (KeyError, IndexError, TypeError) as err:
+            LOGGER.error("Failed to parse API key from response: %s", err)
+            return False
 
     async def check_device_id(self) -> bool:
-        """Check device_id from Ryobi."""
-        device_found = False
+        """Check if configured device_id exists on Ryobi account."""
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
-        method = "get"
-        request = await self._process_request(url, method, data)
+        request = await self._process_request(url, "get", data)
         if request is None:
-            return device_found
+            return False
         try:
-            result = request["result"]
-        except KeyError:
-            return device_found
-        if len(result) == 0:
-            LOGGER.error("API error: empty result")
-        else:
-            for data in result:
-                if data["varName"] == self.device_id:
-                    device_found = True
-        return device_found
+            result = request.get("result", [])
+            for device in result:
+                if device.get("varName") == self.device_id:
+                    return True
+        except (KeyError, TypeError):
+            return False
+        return False
 
-    async def get_devices(self) -> list:
-        """Return list of devices found."""
-        devices = {}
+    async def get_devices(self) -> dict[str, str]:
+        """Return dict of devices found: {varName: friendly_name}."""
+        devices: dict[str, str] = {}
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
         data = {"username": self.username, "password": self.password}
-        method = "get"
-        request = await self._process_request(url, method, data)
+        request = await self._process_request(url, "get", data)
         if request is None:
             return devices
         try:
-            result = request["result"]
-        except KeyError:
-            return devices
-        if len(result) == 0:
-            LOGGER.error("API error: empty result")
-        else:
-            for data in result:
-                devices[data["varName"]] = data["metaData"]["name"]
+            result = request.get("result", [])
+            for device in result:
+                var_name = device.get("varName")
+                meta_data = device.get("metaData", {})
+                name = meta_data.get("name", var_name)
+                if var_name:
+                    devices[var_name] = name
+        except (KeyError, TypeError) as err:
+            LOGGER.error("Error parsing device list: %s", err)
         return devices
 
+    def _parse_garage_door(self, dtm: dict[str, Any]) -> None:
+        """Parse core garage door state values."""
+        if "garageDoor" not in self._modules:
+            return
+        gdo_key = self._modules["garageDoor"]
+        gdo_at = dtm.get(gdo_key, {}).get("at", {})
+        if "doorState" in gdo_at:
+            raw_state = str(gdo_at["doorState"].get("value", "4"))
+            self._data["door_state"] = self.DOOR_STATE.get(raw_state, "fault")
+        if "sensorFlag" in gdo_at:
+            self._data["safety"] = gdo_at["sensorFlag"].get("value")
+        if "vacationMode" in gdo_at:
+            self._data["vacationMode"] = gdo_at["vacationMode"].get("value")
+        if "motionSensor" in gdo_at:
+            self._data["motion"] = gdo_at["motionSensor"].get("value")
+
+    def _parse_accessories(self, dtm: dict[str, Any]) -> None:
+        """Parse accessory plug-in module values."""
+        if "garageLight" in self._modules:
+            light_at = dtm.get(self._modules["garageLight"], {}).get("at", {})
+            if "lightState" in light_at:
+                self._data["light_state"] = light_at["lightState"].get("value")
+
+        if "backupCharger" in self._modules:
+            charger_at = dtm.get(self._modules["backupCharger"], {}).get("at", {})
+            if "chargeLevel" in charger_at:
+                self._data["battery_level"] = charger_at["chargeLevel"].get("value")
+
+        if "wifiModule" in self._modules:
+            wifi_at = dtm.get(self._modules["wifiModule"], {}).get("at", {})
+            if "rssi" in wifi_at:
+                self._data["wifi_rssi"] = wifi_at["rssi"].get("value")
+
+        if "parkAssistLaser" in self._modules:
+            laser_at = dtm.get(self._modules["parkAssistLaser"], {}).get("at", {})
+            if "moduleState" in laser_at:
+                self._data["park_assist"] = laser_at["moduleState"].get("value")
+
+        if "inflator" in self._modules:
+            inflator_at = dtm.get(self._modules["inflator"], {}).get("at", {})
+            if "moduleState" in inflator_at:
+                self._data["inflator"] = inflator_at["moduleState"].get("value")
+
+        if "btSpeaker" in self._modules:
+            speaker_at = dtm.get(self._modules["btSpeaker"], {}).get("at", {})
+            if "moduleState" in speaker_at:
+                self._data["bt_speaker"] = speaker_at["moduleState"].get("value")
+            if "micEnable" in speaker_at:
+                self._data["micStatus"] = speaker_at["micEnable"].get("value")
+
+        if "fan" in self._modules:
+            fan_at = dtm.get(self._modules["fan"], {}).get("at", {})
+            if "speed" in fan_at:
+                self._data["fan"] = fan_at["speed"].get("value")
+
     async def update(self) -> bool:
-        """Update door status from Ryobi."""
-        if self.api_key is None:
-            result = await self.get_api_key()
-            if not result:
-                LOGGER.error("Problem refreshing API key.")
-                return False
+        """Update door status and module metadata from Ryobi."""
+        if self.api_key is None and not await self.get_api_key():
+            LOGGER.error("Problem obtaining API key")
+            return False
 
-        # Reconnect logic
-        if self.ws and not self.ws_listening:
-            await self.ws_connect()
+        if not self.device_id:
+            LOGGER.error("No device ID configured")
+            return False
 
-        update_ok = False
         url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
         data = {"username": self.username, "password": self.password}
-        method = "get"
-        request = await self._process_request(url, method, data)
+        request = await self._process_request(url, "get", data)
         if request is None:
-            return update_ok
+            return False
+
         try:
-            dtm = request["result"][0]["deviceTypeMap"]
-            # Parse the modules
-            result = await self._index_modules(dtm)
+            result_list = request.get("result", [])
+            if not result_list:
+                LOGGER.error("Empty result received for device %s", self.device_id)
+                return False
 
-            LOGGER.debug("Modules indexed: %s", self._modules)
+            first_result = result_list[0]
+            dtm = first_result.get("deviceTypeMap", {})
 
-            # Parse initial values while we setup the websocket for push updates
-            if result:
-                if "garageDoor" in self._modules:
-                    door_state = dtm[self._modules["garageDoor"]]["at"]["doorState"][
-                        "value"
-                    ]
-                    self._data["door_state"] = self.DOOR_STATE[str(door_state)]
-                    self._data["saftey"] = dtm[self._modules["garageDoor"]]["at"][
-                        "sensorFlag"
-                    ]["value"]
-                    self._data["vacationMode"] = dtm[self._modules["garageDoor"]]["at"][
-                        "vacationMode"
-                    ]["value"]
-                    if "motionSensor" in dtm[self._modules["garageDoor"]]["at"]:
-                        self._data["motion"] = dtm[self._modules["garageDoor"]]["at"][
-                            "motionSensor"
-                        ]["value"]
-                if "garageLight" in self._modules:
-                    self._data["light_state"] = dtm[self._modules["garageLight"]]["at"][
-                        "lightState"
-                    ]["value"]
-                if "backupCharger" in self._modules:
-                    self._data["battery_level"] = dtm[self._modules["backupCharger"]][
-                        "at"
-                    ]["chargeLevel"]["value"]
-                if "wifiModule" in self._modules:
-                    self._data["wifi_rssi"] = dtm[self._modules["wifiModule"]]["at"][
-                        "rssi"
-                    ]["value"]
-                if "parkAssistLaser" in self._modules:
-                    self._data["park_assist"] = dtm[self._modules["parkAssistLaser"]][
-                        "at"
-                    ]["moduleState"]["value"]
-                if "inflator" in self._modules:
-                    self._data["inflator"] = dtm[self._modules["inflator"]]["at"][
-                        "moduleState"
-                    ]["value"]
-                if "btSpeaker" in self._modules:
-                    self._data["bt_speaker"] = dtm[self._modules["btSpeaker"]]["at"][
-                        "moduleState"
-                    ]["value"]
-                    self._data["micStatus"] = dtm[self._modules["btSpeaker"]]["at"][
-                        "micEnable"
-                    ]["value"]
-                if "fan" in self._modules:
-                    self._data["fan"] = dtm[self._modules["fan"]]["at"]["speed"][
-                        "value"
-                    ]
+            await self._index_modules(dtm)
+            self._parse_garage_door(dtm)
+            self._parse_accessories(dtm)
 
-            if "name" in request["result"][0]["metaData"]:
-                self._data["device_name"] = request["result"][0]["metaData"]["name"]
-            update_ok = True
-            LOGGER.debug("Data: %s", self._data)
-            if not self.ws:
-                # Start websocket listening
-                # FIX: Pass the shared session to the websocket client
+            if "metaData" in first_result and "name" in first_result["metaData"]:
+                self._data["device_name"] = first_result["metaData"]["name"]
+            else:
+                self._data.setdefault("device_name", f"Ryobi GDO {self.device_id}")
+
+            LOGGER.debug("Updated data: %s", self._data)
+
+            if not self.ws and self.api_key and self.device_id and self.session:
                 self.ws = RyobiWebSocket(
-                    self._process_message, self.username, self.api_key, self.device_id, self.session
+                    self._process_message,
+                    self.username,
+                    self.api_key,
+                    self.device_id,
+                    self.session,
                 )
-        except KeyError as error:
-            LOGGER.error("Exception while parsing answer to update device: %s", error)
-        return update_ok
+
+            return True
+
+        except (KeyError, IndexError, TypeError) as error:
+            LOGGER.error("Exception while parsing update response: %s", error)
+            return False
 
     async def _index_modules(self, dtm: dict) -> bool:
-        """Index and add modules to dictorary."""
-        # Known modules
+        """Index and add modules to dictionary."""
         module_list = [
             "garageDoor",
             "backupCharger",
@@ -266,15 +302,18 @@ class RyobiApiClient:
                 for module in module_list:
                     if module in key:
                         frame[module] = key
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             LOGGER.error("Problem parsing module list: %s", err)
             return False
         self._modules.update(frame)
         return True
 
     def get_module(self, module: str) -> int:
-        """Return module number for device."""
-        return self._modules[module].split("_")[1]
+        """Return module port number for device."""
+        if module not in self._modules:
+            LOGGER.warning("Module %s not found in indexed modules", module)
+            return 0
+        return int(self._modules[module].split("_")[1])
 
     def get_module_type(self, module: str) -> int:
         """Return module type for device."""
@@ -288,179 +327,140 @@ class RyobiApiClient:
             "btSpeaker": 2,
             "fan": 3,
         }
-        return module_type[module]
+        return module_type.get(module, 0)
 
     async def ws_connect(self) -> None:
         """Connect to websocket."""
-        if self.api_key is None:
-            LOGGER.error("Problem refreshing API key.")
-            raise APIKeyError
+        if self.api_key is None and not await self.get_api_key():
+            raise APIKeyError("Could not retrieve API key for WebSocket")
 
-        assert self.ws
+        if not self.ws and self.session and self.api_key and self.device_id:
+            self.ws = RyobiWebSocket(
+                self._process_message,
+                self.username,
+                self.api_key,
+                self.device_id,
+                self.session,
+            )
+
         if self.ws_listening:
-            LOGGER.debug("Websocket already connected.")
+            LOGGER.debug("Websocket already listening")
             return
 
-        LOGGER.debug("Websocket not connected, connecting now...")
+        LOGGER.debug("Websocket not connected, initiating connection")
         await self.open_websocket()
 
-    async def ws_disconnect(self) -> bool:
+    async def ws_disconnect(self) -> None:
         """Disconnect from websocket."""
-        assert self.ws
-        if not self.ws_listening:
-            LOGGER.debug("Websocket already disconnected.")
-        await self.ws.close()
+        if self.ws:
+            await self.ws.close()
+        if self._ws_listen_task and not self._ws_listen_task.done():
+            self._ws_listen_task.cancel()
+        self.ws_listening = False
 
     async def open_websocket(self) -> None:
         """Connect WebSocket to Ryobi Server."""
         try:
-            LOGGER.debug("Attempting to find running loop...")
             loop = asyncio.get_running_loop()
         except RuntimeError:
             loop = asyncio.get_event_loop()
-            LOGGER.debug("Using new event loop...")
 
-        if not self.ws_listening:
+        if not self.ws_listening and self.ws:
             self._ws_listen_task = loop.create_task(self.ws.listen())
 
-    @callback
     async def _process_message(
-        self, msg_type: str, msg: dict, error: str | None = None
+        self, msg_type: str, msg: Any, error: str | None = None
     ) -> None:
-        """Process websocket data and handle websocket signaling."""
-        LOGGER.debug(
-            "Websocket callback msg_type: %s msg: %s err: %s", msg_type, msg, error
-        )
+        """Process websocket data and handle connection signaling."""
+        LOGGER.debug("Websocket callback msg_type: %s, msg: %s, err: %s", msg_type, msg, error)
+
         if msg_type == SIGNAL_CONNECTION_STATE:
             self.ws_listening = False
-            if msg == STATE_CONNECTED:
-                LOGGER.debug("Websocket to %s successful", self.ws.url)
+            if msg in (STATE_CONNECTED, STATE_STARTING):
                 self.ws_listening = True
-            elif msg == STATE_STARTING:
-                # Mark websocket as starting to prevent duplicate
-                # connection attempts while negotiating
-                LOGGER.debug("Websocket to %s starting", self.ws.url)
-                self.ws_listening = True
-            elif msg == STATE_DISCONNECTED:
-                LOGGER.debug(
-                    "Websocket to %s disconnected",
-                    self.ws.url,
-                )
-            # Stopped websockets without errors are expected during shutdown
-            # and ignored
             elif msg == STATE_STOPPED and error:
-                LOGGER.error(
-                    "Websocket to %s failed, aborting [Error: %s]",
-                    self.ws.url,
-                    error,
-                )
-            # Flag websocket as not listening
-            # STATE_STOPPED with no error
-            else:
-                LOGGER.debug("Websocket state: %s error: %s", msg, error)
+                LOGGER.error("Websocket stopped with error: %s", error)
+
             if self.callback is not None:
                 await self.callback()
 
-        elif msg_type == "data":
+        elif msg_type == "data" and isinstance(msg, dict):
             message = msg
-            LOGGER.debug("Websocket data: %s", message)
-
             if METHOD in message:
-                if message[METHOD] == GARAGE_UPDATE_MSG:
-                    LOGGER.debug("Websocket update message.")
-                    if PARAMS in message:
-                        await self.parse_message(message[PARAMS])
-
+                if message[METHOD] == GARAGE_UPDATE_MSG and PARAMS in message:
+                    await self.parse_message(message[PARAMS])
                 elif message[METHOD] == WS_AUTH_OK:
-                    if message[PARAMS]["authorized"]:
-                        LOGGER.debug("Websocket API key authorized.")
+                    authorized = message.get(PARAMS, {}).get("authorized", False)
+                    if authorized:
+                        LOGGER.debug("Websocket API key authorized")
                     else:
-                        LOGGER.error("Websocket API key not authorized.")
-
+                        LOGGER.error("Websocket API key authorization failed")
             elif RESULT in message:
-                if RESULT in message[RESULT]:
-                    if message[WS_CMD_ACK][RESULT] == WS_OK:
-                        LOGGER.debug("Websocket result OK.")
-                if "authorized" in message[WS_CMD_ACK]:
-                    if message[WS_CMD_ACK]["authorized"]:
-                        LOGGER.debug("Websocket User authorization OK.")
-
-            else:
-                LOGGER.error("Websocket unknown message received: %s", message)
+                result_obj = message.get(RESULT, {})
+                if isinstance(result_obj, dict):
+                    if result_obj.get(RESULT) == WS_OK:
+                        LOGGER.debug("Websocket command ACK OK")
+                    if result_obj.get("authorized"):
+                        LOGGER.debug("Websocket user authorization OK")
         else:
-            LOGGER.debug("Unknown message from websocket: %s type: %s", msg, msg_type)
+            LOGGER.debug("Unknown websocket event: %s type: %s", msg, msg_type)
 
     async def parse_message(self, data: dict) -> None:
-        """Parse incoming updated data."""
-        if self.device_id != data["varName"]:
+        """Parse incoming updated data from WebSocket push."""
+        if not isinstance(data, dict):
+            return
+
+        if self.device_id and data.get("varName") != self.device_id:
             LOGGER.debug(
-                "Websocket update for %s does not match %s",
-                data["varName"],
+                "Websocket update for %s ignored (expected %s)",
+                data.get("varName"),
                 self.device_id,
             )
-            return None
+            return
 
-        for key in data:
-            if key in ["topic", "varName", "id"]:
+        for key, value_dict in data.items():
+            if key in ["topic", "varName", "id"] or not isinstance(value_dict, dict):
                 continue
 
-            LOGGER.debug("Websocket parsing update for item %s: %s", key, data[key])
+            LOGGER.debug("Websocket parsing update for item %s: %s", key, value_dict)
+            parts = key.split(".")
+            module_name = parts[1] if len(parts) > 1 else key
 
-            module_name = key.split(".")[1]
-
-            # Garage Door updates
             if "garageDoor" in key:
-                if module_name == "doorState":
-                    self._data["door_state"] = self.DOOR_STATE[str(data[key]["value"])]
-                elif module_name == "motionSensor":
-                    self._data["motion"] = data[key]["value"]
-                elif module_name == "vacationMode":
-                    self._data["vacationMode"] = data[key]["value"]
-                elif module_name == "sensorFlag":
-                    self._data["safety"] = data[key]["value"]
-                attributes = {}
-                for item in data[key]:
-                    attributes[item] = data[key][item]
-                self._data["door_attributes"] = attributes
+                if module_name == "doorState" and "value" in value_dict:
+                    self._data["door_state"] = self.DOOR_STATE.get(
+                        str(value_dict["value"]), "fault"
+                    )
+                elif module_name == "motionSensor" and "value" in value_dict:
+                    self._data["motion"] = value_dict["value"]
+                elif module_name == "vacationMode" and "value" in value_dict:
+                    self._data["vacationMode"] = value_dict["value"]
+                elif module_name == "sensorFlag" and "value" in value_dict:
+                    self._data["safety"] = value_dict["value"]
+                self._data["door_attributes"] = dict(value_dict)
 
-            # Garage Light updates
             elif "garageLight" in key:
-                if module_name == "lightState":
-                    self._data["light_state"] = data[key]["value"]
-                attributes = {}
-                for item in data[key]:
-                    attributes[item] = data[key][item]
-                self._data["light_attributes"] = attributes
+                if module_name == "lightState" and "value" in value_dict:
+                    self._data["light_state"] = value_dict["value"]
+                self._data["light_attributes"] = dict(value_dict)
 
-            # Park Assist updates
             elif "parkAssistLaser" in key:
-                if module_name == "moduleState":
-                    self._data["park_assist"] = data[key]["value"]
+                if module_name == "moduleState" and "value" in value_dict:
+                    self._data["park_assist"] = value_dict["value"]
 
-            # Bluetooth Speaker Updates
             elif "btSpeaker" in key:
-                if module_name == "moduleState":
-                    self._data["bt_speaker"] = data[key]["value"]
-                elif module_name == "micEnabled":
-                    self._data["micStatus"] = data[key]["value"]
+                if module_name == "moduleState" and "value" in value_dict:
+                    self._data["bt_speaker"] = value_dict["value"]
+                elif module_name in ("micEnable", "micEnabled") and "value" in value_dict:
+                    self._data["micStatus"] = value_dict["value"]
 
-            # Inflator module
             elif "inflator" in key:
-                if module_name == "moduleState":
-                    self._data["inflator"] = data[key]["value"]
+                if module_name == "moduleState" and "value" in value_dict:
+                    self._data["inflator"] = value_dict["value"]
 
-            # fan module
             elif "fan" in key:
-                if module_name == "speed":
-                    self._data["fan"] = data[key]["value"]
-            else:
-                LOGGER.error("Websocket data update unknown module: %s", key)
+                if module_name == "speed" and "value" in value_dict:
+                    self._data["fan"] = value_dict["value"]
 
         if self.callback is not None:
             await self.callback()
-
-
-
-
-class APIKeyError(Exception):
-    """Exception for missing API key."""
