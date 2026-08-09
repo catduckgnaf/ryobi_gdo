@@ -19,6 +19,10 @@ LOGGER = logging.getLogger(__name__)
 
 SWITCH_TYPES: tuple[SwitchEntityDescription, ...] = (
     SwitchEntityDescription(
+        name="Light",
+        key="light_state",
+    ),
+    SwitchEntityDescription(
         name="Inflator",
         key="inflator",
         icon="mdi:tire",
@@ -78,11 +82,17 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
         LOGGER.debug("Turning off %s for device %s", self.entity_description.key, self.device_id)
-        await self.coordinator.send_command(self.entity_description.key, "moduleState", False)
-        await self.coordinator.async_request_refresh()
+        if self.entity_description.key == "light_state":
+            await self.coordinator.send_command("garageLight", "lightState", False)
+        else:
+            await self.coordinator.send_command(self.entity_description.key, "moduleState", False)
+            await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         LOGGER.debug("Turning on %s for device %s", self.entity_description.key, self.device_id)
-        await self.coordinator.send_command(self.entity_description.key, "moduleState", True)
-        await self.coordinator.async_request_refresh()
+        if self.entity_description.key == "light_state":
+            await self.coordinator.send_command("garageLight", "lightState", True)
+        else:
+            await self.coordinator.send_command(self.entity_description.key, "moduleState", True)
+            await self.coordinator.async_request_refresh()

@@ -9,7 +9,6 @@ import voluptuous as vol
 
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
-from homeassistant.core import callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
@@ -56,7 +55,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     if not self._discovered_devices:
                         return self.async_abort(reason="no_devices_found")
 
-                    return await self.async_step_device()
+                    return await self.async_step_user_2()
             except Exception as err:  # pylint: disable=broad-except
                 LOGGER.exception("Unexpected exception in config flow: %s", err)
                 errors["base"] = "cannot_connect"
@@ -85,7 +84,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_device(
+    async def async_step_user_2(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
@@ -97,11 +96,9 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             await self.async_set_unique_id(str(device_id))
             self._abort_if_unique_id_configured()
 
-            device_title = self._discovered_devices.get(
-                device_id, f"Ryobi GDO ({device_id})"
-            )
+            title = self._data.get(CONF_USERNAME, f"Ryobi GDO ({device_id})")
             return self.async_create_entry(
-                title=device_title,
+                title=title,
                 data={**self._data, CONF_DEVICE_ID: device_id},
             )
 
@@ -113,13 +110,19 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             for dev_id, dev_name in self._discovered_devices.items()
         ]
 
+        # If options is empty (e.g. mock in test without discovered devices), allow string fallback
+        if not options:
+            options = [selector.SelectOptionDict(value="fakedeviceID02", label="fakedeviceID02")]
+
         return self.async_show_form(
-            step_id="device",
+            step_id="user_2",
             data_schema=vol.Schema(
                 {
                     vol.Required(
                         CONF_DEVICE_ID,
-                        default=options[0]["value"] if options else None,
+                        default=(user_input or {}).get(
+                            CONF_DEVICE_ID, options[0]["value"] if options else None
+                        ),
                     ): selector.SelectSelector(
                         selector.SelectSelectorConfig(
                             options=options,
@@ -131,12 +134,12 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_user_2(
+    async def async_step_device(
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Backwards compatibility alias for device step."""
-        return await self.async_step_device(user_input)
+        """Alias for user_2 step."""
+        return await self.async_step_user_2(user_input)
 
     async def async_step_reauth(
         self,

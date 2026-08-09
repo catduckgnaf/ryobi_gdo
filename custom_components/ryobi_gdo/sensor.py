@@ -22,14 +22,14 @@ from .coordinator import RyobiDataUpdateCoordinator
 
 SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
     SensorEntityDescription(
-        name="Battery",
+        name="Battery Level",
         key="battery_level",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
     ),
     SensorEntityDescription(
-        name="Wi-Fi Signal",
+        name="WiFi Signal",
         key="wifi_rssi",
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS,
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
@@ -49,7 +49,6 @@ async def async_setup_entry(
     sensors: list[RyobiSensor] = []
 
     for description in SENSOR_TYPES:
-        # Check module presence: only add battery sensor if backup charger is present
         if description.key == "battery_level":
             if "backupCharger" in coordinator.client._modules or "battery_level" in coordinator.data:
                 sensors.append(RyobiSensor(coordinator, description))

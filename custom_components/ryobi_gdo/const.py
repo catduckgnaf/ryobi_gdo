@@ -11,7 +11,6 @@ ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.COVER,
-    Platform.LIGHT,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
@@ -30,7 +29,6 @@ CONF_DEVICE_ID = "device_id"
 # WSS Messages
 GARAGE_UPDATE_MSG = "wskAttributeUpdateNtfy"
 WS_AUTH_OK = "authorizedWebSocket"
-WS_CMD_ACK = "result"
 WS_OK = "OK"
 
 # Socket

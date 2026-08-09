@@ -12,7 +12,7 @@ from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-type RyobiConfigEntry = ConfigEntry[RyobiDataUpdateCoordinator]
+RyobiConfigEntry = ConfigEntry[RyobiDataUpdateCoordinator]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> bool:

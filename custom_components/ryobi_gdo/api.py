@@ -24,7 +24,6 @@ from .const import (
     LOGIN_ENDPOINT,
     REQUEST_TIMEOUT,
     WS_AUTH_OK,
-    WS_CMD_ACK,
     WS_OK,
 )
 from .websocket import (
@@ -74,7 +73,7 @@ class RyobiApiClient:
         self,
         username: str,
         password: str,
-        session: aiohttp.ClientSession,
+        session: aiohttp.ClientSession | None = None,
         device_id: str | None = None,
     ) -> None:
         """Initialize the API object."""
@@ -98,6 +97,10 @@ class RyobiApiClient:
         self, url: str, method: str, data: dict[str, str]
     ) -> dict | None:
         """Process HTTP requests."""
+        if self.session is None:
+            LOGGER.error("No aiohttp session available to process request")
+            return None
+
         http_method = getattr(self.session, method.lower())
         LOGGER.debug("Connecting to %s using %s", url, method)
         reply = None
@@ -176,13 +179,66 @@ class RyobiApiClient:
             LOGGER.error("Error parsing device list: %s", err)
         return devices
 
+    def _parse_garage_door(self, dtm: dict[str, Any]) -> None:
+        """Parse core garage door state values."""
+        if "garageDoor" not in self._modules:
+            return
+        gdo_key = self._modules["garageDoor"]
+        gdo_at = dtm.get(gdo_key, {}).get("at", {})
+        if "doorState" in gdo_at:
+            raw_state = str(gdo_at["doorState"].get("value", "4"))
+            self._data["door_state"] = self.DOOR_STATE.get(raw_state, "fault")
+        if "sensorFlag" in gdo_at:
+            self._data["safety"] = gdo_at["sensorFlag"].get("value")
+        if "vacationMode" in gdo_at:
+            self._data["vacationMode"] = gdo_at["vacationMode"].get("value")
+        if "motionSensor" in gdo_at:
+            self._data["motion"] = gdo_at["motionSensor"].get("value")
+
+    def _parse_accessories(self, dtm: dict[str, Any]) -> None:
+        """Parse accessory plug-in module values."""
+        if "garageLight" in self._modules:
+            light_at = dtm.get(self._modules["garageLight"], {}).get("at", {})
+            if "lightState" in light_at:
+                self._data["light_state"] = light_at["lightState"].get("value")
+
+        if "backupCharger" in self._modules:
+            charger_at = dtm.get(self._modules["backupCharger"], {}).get("at", {})
+            if "chargeLevel" in charger_at:
+                self._data["battery_level"] = charger_at["chargeLevel"].get("value")
+
+        if "wifiModule" in self._modules:
+            wifi_at = dtm.get(self._modules["wifiModule"], {}).get("at", {})
+            if "rssi" in wifi_at:
+                self._data["wifi_rssi"] = wifi_at["rssi"].get("value")
+
+        if "parkAssistLaser" in self._modules:
+            laser_at = dtm.get(self._modules["parkAssistLaser"], {}).get("at", {})
+            if "moduleState" in laser_at:
+                self._data["park_assist"] = laser_at["moduleState"].get("value")
+
+        if "inflator" in self._modules:
+            inflator_at = dtm.get(self._modules["inflator"], {}).get("at", {})
+            if "moduleState" in inflator_at:
+                self._data["inflator"] = inflator_at["moduleState"].get("value")
+
+        if "btSpeaker" in self._modules:
+            speaker_at = dtm.get(self._modules["btSpeaker"], {}).get("at", {})
+            if "moduleState" in speaker_at:
+                self._data["bt_speaker"] = speaker_at["moduleState"].get("value")
+            if "micEnable" in speaker_at:
+                self._data["micStatus"] = speaker_at["micEnable"].get("value")
+
+        if "fan" in self._modules:
+            fan_at = dtm.get(self._modules["fan"], {}).get("at", {})
+            if "speed" in fan_at:
+                self._data["fan"] = fan_at["speed"].get("value")
+
     async def update(self) -> bool:
         """Update door status and module metadata from Ryobi."""
-        if self.api_key is None:
-            result = await self.get_api_key()
-            if not result:
-                LOGGER.error("Problem obtaining API key")
-                return False
+        if self.api_key is None and not await self.get_api_key():
+            LOGGER.error("Problem obtaining API key")
+            return False
 
         if not self.device_id:
             LOGGER.error("No device ID configured")
@@ -203,67 +259,9 @@ class RyobiApiClient:
             first_result = result_list[0]
             dtm = first_result.get("deviceTypeMap", {})
 
-            # Parse and index installed modules
             await self._index_modules(dtm)
-            LOGGER.debug("Modules indexed for %s: %s", self.device_id, self._modules)
-
-            if "garageDoor" in self._modules:
-                gdo_key = self._modules["garageDoor"]
-                gdo_at = dtm.get(gdo_key, {}).get("at", {})
-                if "doorState" in gdo_at:
-                    raw_state = str(gdo_at["doorState"].get("value", "4"))
-                    self._data["door_state"] = self.DOOR_STATE.get(raw_state, "fault")
-                if "sensorFlag" in gdo_at:
-                    # FIX: Corrected typo 'saftey' -> 'safety'
-                    self._data["safety"] = gdo_at["sensorFlag"].get("value")
-                if "vacationMode" in gdo_at:
-                    self._data["vacationMode"] = gdo_at["vacationMode"].get("value")
-                if "motionSensor" in gdo_at:
-                    self._data["motion"] = gdo_at["motionSensor"].get("value")
-
-            if "garageLight" in self._modules:
-                light_key = self._modules["garageLight"]
-                light_at = dtm.get(light_key, {}).get("at", {})
-                if "lightState" in light_at:
-                    self._data["light_state"] = light_at["lightState"].get("value")
-
-            if "backupCharger" in self._modules:
-                charger_key = self._modules["backupCharger"]
-                charger_at = dtm.get(charger_key, {}).get("at", {})
-                if "chargeLevel" in charger_at:
-                    self._data["battery_level"] = charger_at["chargeLevel"].get("value")
-
-            if "wifiModule" in self._modules:
-                wifi_key = self._modules["wifiModule"]
-                wifi_at = dtm.get(wifi_key, {}).get("at", {})
-                if "rssi" in wifi_at:
-                    self._data["wifi_rssi"] = wifi_at["rssi"].get("value")
-
-            if "parkAssistLaser" in self._modules:
-                laser_key = self._modules["parkAssistLaser"]
-                laser_at = dtm.get(laser_key, {}).get("at", {})
-                if "moduleState" in laser_at:
-                    self._data["park_assist"] = laser_at["moduleState"].get("value")
-
-            if "inflator" in self._modules:
-                inflator_key = self._modules["inflator"]
-                inflator_at = dtm.get(inflator_key, {}).get("at", {})
-                if "moduleState" in inflator_at:
-                    self._data["inflator"] = inflator_at["moduleState"].get("value")
-
-            if "btSpeaker" in self._modules:
-                speaker_key = self._modules["btSpeaker"]
-                speaker_at = dtm.get(speaker_key, {}).get("at", {})
-                if "moduleState" in speaker_at:
-                    self._data["bt_speaker"] = speaker_at["moduleState"].get("value")
-                if "micEnable" in speaker_at:
-                    self._data["micStatus"] = speaker_at["micEnable"].get("value")
-
-            if "fan" in self._modules:
-                fan_key = self._modules["fan"]
-                fan_at = dtm.get(fan_key, {}).get("at", {})
-                if "speed" in fan_at:
-                    self._data["fan"] = fan_at["speed"].get("value")
+            self._parse_garage_door(dtm)
+            self._parse_accessories(dtm)
 
             if "metaData" in first_result and "name" in first_result["metaData"]:
                 self._data["device_name"] = first_result["metaData"]["name"]
@@ -272,7 +270,7 @@ class RyobiApiClient:
 
             LOGGER.debug("Updated data: %s", self._data)
 
-            if not self.ws and self.api_key and self.device_id:
+            if not self.ws and self.api_key and self.device_id and self.session:
                 self.ws = RyobiWebSocket(
                     self._process_message,
                     self.username,
@@ -334,17 +332,15 @@ class RyobiApiClient:
 
     async def ws_connect(self) -> None:
         """Connect to websocket."""
-        if self.api_key is None:
-            result = await self.get_api_key()
-            if not result:
-                raise APIKeyError("Could not retrieve API key for WebSocket")
+        if self.api_key is None and not await self.get_api_key():
+            raise APIKeyError("Could not retrieve API key for WebSocket")
 
-        if not self.ws:
+        if not self.ws and self.session and self.api_key and self.device_id:
             self.ws = RyobiWebSocket(
                 self._process_message,
                 self.username,
                 self.api_key,
-                self.device_id,  # type: ignore[arg-type]
+                self.device_id,
                 self.session,
             )
 
@@ -381,18 +377,10 @@ class RyobiApiClient:
 
         if msg_type == SIGNAL_CONNECTION_STATE:
             self.ws_listening = False
-            if msg == STATE_CONNECTED:
-                LOGGER.debug("Websocket connection established")
+            if msg in (STATE_CONNECTED, STATE_STARTING):
                 self.ws_listening = True
-            elif msg == STATE_STARTING:
-                LOGGER.debug("Websocket connection starting")
-                self.ws_listening = True
-            elif msg == STATE_DISCONNECTED:
-                LOGGER.debug("Websocket disconnected")
             elif msg == STATE_STOPPED and error:
                 LOGGER.error("Websocket stopped with error: %s", error)
-            else:
-                LOGGER.debug("Websocket state changed: %s", msg)
 
             if self.callback is not None:
                 await self.callback()
@@ -439,7 +427,6 @@ class RyobiApiClient:
             parts = key.split(".")
             module_name = parts[1] if len(parts) > 1 else key
 
-            # Garage Door updates
             if "garageDoor" in key:
                 if module_name == "doorState" and "value" in value_dict:
                     self._data["door_state"] = self.DOOR_STATE.get(
@@ -453,30 +440,25 @@ class RyobiApiClient:
                     self._data["safety"] = value_dict["value"]
                 self._data["door_attributes"] = dict(value_dict)
 
-            # Garage Light updates
             elif "garageLight" in key:
                 if module_name == "lightState" and "value" in value_dict:
                     self._data["light_state"] = value_dict["value"]
                 self._data["light_attributes"] = dict(value_dict)
 
-            # Park Assist updates
             elif "parkAssistLaser" in key:
                 if module_name == "moduleState" and "value" in value_dict:
                     self._data["park_assist"] = value_dict["value"]
 
-            # Bluetooth Speaker Updates (handling micEnable / micEnabled)
             elif "btSpeaker" in key:
                 if module_name == "moduleState" and "value" in value_dict:
                     self._data["bt_speaker"] = value_dict["value"]
                 elif module_name in ("micEnable", "micEnabled") and "value" in value_dict:
                     self._data["micStatus"] = value_dict["value"]
 
-            # Inflator module
             elif "inflator" in key:
                 if module_name == "moduleState" and "value" in value_dict:
                     self._data["inflator"] = value_dict["value"]
 
-            # Fan module
             elif "fan" in key:
                 if module_name == "speed" and "value" in value_dict:
                     self._data["fan"] = value_dict["value"]
