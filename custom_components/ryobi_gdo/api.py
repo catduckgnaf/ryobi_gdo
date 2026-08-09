@@ -29,7 +29,6 @@ from .const import (
 from .websocket import (
     SIGNAL_CONNECTION_STATE,
     STATE_CONNECTED,
-    STATE_DISCONNECTED,
     STATE_STARTING,
     STATE_STOPPED,
     RyobiWebSocket,
