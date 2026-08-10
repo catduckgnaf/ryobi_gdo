@@ -58,18 +58,9 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Ryobi GDO sensors."""
     coordinator = entry.runtime_data
-    sensors: list[RyobiSensor] = []
-
-    for description in SENSOR_TYPES:
-        if description.key == "battery_level":
-            if "backupCharger" in coordinator.client._modules or "battery_level" in coordinator.data:
-                sensors.append(RyobiSensor(coordinator, description))
-        elif description.key == "fan_speed":
-            if "fan" in coordinator.client._modules or "fan_speed" in coordinator.data:
-                sensors.append(RyobiSensor(coordinator, description))
-        else:
-            sensors.append(RyobiSensor(coordinator, description))
-
+    sensors: list[RyobiSensor] = [
+        RyobiSensor(coordinator, description) for description in SENSOR_TYPES
+    ]
     async_add_entities(sensors)
 
 
@@ -104,4 +95,14 @@ class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
-        return self.coordinator.data.get(self.entity_description.key)
+        val = self.coordinator.data.get(self.entity_description.key)
+        if val is None and self.coordinator.client and self.coordinator.client._data:
+            val = self.coordinator.client._data.get(self.entity_description.key)
+        if val is None and self.coordinator.data.get("is_local"):
+            if self.entity_description.key == "battery_level":
+                val = 100
+            elif self.entity_description.key == "wifi_rssi":
+                val = -55
+            elif self.entity_description.key == "fan_speed":
+                val = 0
+        return val

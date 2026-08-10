@@ -522,8 +522,19 @@ class RyobiApiClient:
                 if module_name == "moduleState" and "value" in value_dict:
                     self._data["inflator"] = value_dict["value"]
 
+            elif "backupCharger" in key:
+                if module_name in ("chargeLevel", "batteryLevel") and "value" in value_dict:
+                    self._data["battery_level"] = value_dict["value"]
+
+            elif "wifiModule" in key:
+                if module_name == "rssi" and "value" in value_dict:
+                    self._data["wifi_rssi"] = value_dict["value"]
+
             elif "fan" in key:
                 if module_name == "speed" and "value" in value_dict:
+                    self._data["fan_speed"] = value_dict["value"]
+                    self._data["fan"] = 1 if value_dict["value"] > 0 else 0
+                elif module_name == "moduleState" and "value" in value_dict:
                     self._data["fan"] = value_dict["value"]
 
         if self.callback is not None:
