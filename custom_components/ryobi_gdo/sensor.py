@@ -42,6 +42,12 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         icon="mdi:server-network",
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    SensorEntityDescription(
+        name="Fan Speed",
+        key="fan_speed",
+        icon="mdi:fan-speed-1",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 
@@ -57,6 +63,9 @@ async def async_setup_entry(
     for description in SENSOR_TYPES:
         if description.key == "battery_level":
             if "backupCharger" in coordinator.client._modules or "battery_level" in coordinator.data:
+                sensors.append(RyobiSensor(coordinator, description))
+        elif description.key == "fan_speed":
+            if "fan" in coordinator.client._modules or "fan_speed" in coordinator.data:
                 sensors.append(RyobiSensor(coordinator, description))
         else:
             sensors.append(RyobiSensor(coordinator, description))

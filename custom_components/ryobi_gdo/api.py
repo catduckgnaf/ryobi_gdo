@@ -275,7 +275,11 @@ class RyobiApiClient:
         if "fan" in self._modules:
             fan_at = dtm.get(self._modules["fan"], {}).get("at", {})
             if "speed" in fan_at:
-                self._data["fan"] = fan_at["speed"].get("value")
+                self._data["fan_speed"] = fan_at["speed"].get("value", 0)
+            if "moduleState" in fan_at:
+                self._data["fan"] = fan_at["moduleState"].get("value", 0)
+            elif "speed" in fan_at:
+                self._data["fan"] = 1 if self._data.get("fan_speed", 0) > 0 else 0
 
     async def update(self) -> bool:
         """Update door status and module metadata from Ryobi."""
@@ -400,6 +404,7 @@ class RyobiApiClient:
                 self.api_key,
                 self.device_id,
                 self.session,
+                host=self.host,
             )
 
         if self.ws_listening:

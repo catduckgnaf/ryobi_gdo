@@ -49,7 +49,6 @@ BINARY_SENSORS: tuple[RyobiBinarySensorEntityDescription, ...] = (
         key="vacationMode",
         icon="mdi:wallet-travel",
         required_module="garageDoor",
-        entity_registry_enabled_default=False,
     ),
     RyobiBinarySensorEntityDescription(
         name="Park Assist Laser",
@@ -62,14 +61,26 @@ BINARY_SENSORS: tuple[RyobiBinarySensorEntityDescription, ...] = (
         key="bt_speaker",
         icon="mdi:speaker",
         required_module="btSpeaker",
-        entity_registry_enabled_default=False,
     ),
     RyobiBinarySensorEntityDescription(
         name="Microphone",
         key="micStatus",
         icon="mdi:microphone",
         required_module="btSpeaker",
-        entity_registry_enabled_default=False,
+    ),
+    RyobiBinarySensorEntityDescription(
+        name="Inflator Running",
+        key="inflator",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        icon="mdi:tire",
+        required_module="inflator",
+    ),
+    RyobiBinarySensorEntityDescription(
+        name="Fan Running",
+        key="fan",
+        device_class=BinarySensorDeviceClass.RUNNING,
+        icon="mdi:fan",
+        required_module="fan",
     ),
     RyobiBinarySensorEntityDescription(
         name="Server Connection",

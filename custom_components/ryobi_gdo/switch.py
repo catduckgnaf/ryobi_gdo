@@ -21,14 +21,49 @@ SWITCH_TYPES: tuple[SwitchEntityDescription, ...] = (
     SwitchEntityDescription(
         name="Light",
         key="light_state",
+        icon="mdi:lightbulb",
     ),
     SwitchEntityDescription(
         name="Inflator",
         key="inflator",
         icon="mdi:tire",
-        entity_registry_enabled_default=False,
+    ),
+    SwitchEntityDescription(
+        name="Fan",
+        key="fan",
+        icon="mdi:fan",
+    ),
+    SwitchEntityDescription(
+        name="Park Assist Laser",
+        key="park_assist",
+        icon="mdi:laser-pointer",
+    ),
+    SwitchEntityDescription(
+        name="Bluetooth Speaker",
+        key="bt_speaker",
+        icon="mdi:speaker",
+    ),
+    SwitchEntityDescription(
+        name="Microphone",
+        key="micStatus",
+        icon="mdi:microphone",
+    ),
+    SwitchEntityDescription(
+        name="Vacation Mode",
+        key="vacationMode",
+        icon="mdi:wallet-travel",
     ),
 )
+
+KEY_TO_MODULE: dict[str, str] = {
+    "light_state": "garageLight",
+    "inflator": "inflator",
+    "fan": "fan",
+    "park_assist": "parkAssistLaser",
+    "bt_speaker": "btSpeaker",
+    "micStatus": "btSpeaker",
+    "vacationMode": "garageDoor",
+}
 
 
 async def async_setup_entry(
@@ -41,7 +76,12 @@ async def async_setup_entry(
     switches: list[RyobiSwitch] = []
 
     for description in SWITCH_TYPES:
-        if description.key in coordinator.client._modules or description.key in coordinator.data:
+        required_mod = KEY_TO_MODULE.get(description.key, description.key)
+        if (
+            required_mod in coordinator.client._modules
+            or description.key in coordinator.data
+            or description.key in coordinator.client._data
+        ):
             switches.append(RyobiSwitch(coordinator, description))
 
     async_add_entities(switches)
@@ -83,17 +123,43 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
         LOGGER.debug("Turning off %s for device %s", self.entity_description.key, self.device_id)
-        if self.entity_description.key == "light_state":
+        key = self.entity_description.key
+        if key == "light_state":
             await self.coordinator.send_command("garageLight", "lightState", 0)
+        elif key == "vacationMode":
+            await self.coordinator.send_command("garageDoor", "vacationMode", 0)
+        elif key == "micStatus":
+            await self.coordinator.send_command("btSpeaker", "micEnable", 0)
+        elif key == "bt_speaker":
+            await self.coordinator.send_command("btSpeaker", "moduleState", 0)
+        elif key == "park_assist":
+            await self.coordinator.send_command("parkAssistLaser", "moduleState", 0)
+        elif key == "fan":
+            await self.coordinator.send_command("fan", "moduleState", 0)
+        elif key == "inflator":
+            await self.coordinator.send_command("inflator", "moduleState", 0)
         else:
-            await self.coordinator.send_command(self.entity_description.key, "moduleState", 0)
+            await self.coordinator.send_command(key, "moduleState", 0)
         await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         LOGGER.debug("Turning on %s for device %s", self.entity_description.key, self.device_id)
-        if self.entity_description.key == "light_state":
+        key = self.entity_description.key
+        if key == "light_state":
             await self.coordinator.send_command("garageLight", "lightState", 1)
+        elif key == "vacationMode":
+            await self.coordinator.send_command("garageDoor", "vacationMode", 1)
+        elif key == "micStatus":
+            await self.coordinator.send_command("btSpeaker", "micEnable", 1)
+        elif key == "bt_speaker":
+            await self.coordinator.send_command("btSpeaker", "moduleState", 1)
+        elif key == "park_assist":
+            await self.coordinator.send_command("parkAssistLaser", "moduleState", 1)
+        elif key == "fan":
+            await self.coordinator.send_command("fan", "moduleState", 1)
+        elif key == "inflator":
+            await self.coordinator.send_command("inflator", "moduleState", 1)
         else:
-            await self.coordinator.send_command(self.entity_description.key, "moduleState", 1)
+            await self.coordinator.send_command(key, "moduleState", 1)
         await self.coordinator.async_request_refresh()
