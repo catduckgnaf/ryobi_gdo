@@ -55,6 +55,7 @@ class RyobiCover(CoordinatorEntity[RyobiDataUpdateCoordinator], CoverEntity):
             manufacturer="Ryobi",
             model="GDO",
             name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            serial_number=self.device_id,
         )
 
     @property
@@ -94,4 +95,6 @@ class RyobiCover(CoordinatorEntity[RyobiDataUpdateCoordinator], CoverEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return sensor attributes."""
-        return self.coordinator.data.get("door_attributes", {})
+        attrs = dict(self.coordinator.data.get("door_attributes", {}))
+        attrs["device_id"] = self.device_id
+        return attrs

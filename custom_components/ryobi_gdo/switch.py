@@ -71,6 +71,7 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
             manufacturer="Ryobi",
             model="GDO",
             name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            serial_number=self.device_id,
         )
 
     @property
