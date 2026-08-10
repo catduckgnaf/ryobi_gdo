@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - run: |
           echo "package=$(ls -F | grep \/$ | grep -v "bin\|examples\|tests" | sed -n "s/\///g;1p")" >> $GITHUB_ENV
@@ -74,7 +74,7 @@ jobs:
             experimental: true
     steps:
       - name: "Checkout code"
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v7
