@@ -24,11 +24,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> boo
     )
 
     coordinator = RyobiDataUpdateCoordinator(hass, interval=60, entry=entry)
+    entry.runtime_data = coordinator
 
     # Fetch initial data
     await coordinator.async_config_entry_first_refresh()
-
-    entry.runtime_data = coordinator
 
     # Start websocket listener
     await coordinator.client.ws_connect()
@@ -44,8 +43,9 @@ async def async_unload_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> bo
 
     unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
-    if unload_ok:
+    if unload_ok and hasattr(entry, "runtime_data") and entry.runtime_data is not None:
         coordinator = entry.runtime_data
-        await coordinator.client.ws_disconnect()
+        if coordinator.client:
+            await coordinator.client.ws_disconnect()
 
     return unload_ok
