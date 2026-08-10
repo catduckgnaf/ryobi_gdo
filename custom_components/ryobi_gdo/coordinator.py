@@ -67,13 +67,17 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def send_command(self, device: str, command: str, value: Any) -> None:
         """Send command to GDO via WebSocket."""
-        await self._websocket_check()
-        module = self.client.get_module(device)
-        module_type = self.client.get_module_type(device)
-        if self.client.ws is not None and self.client.ws.state == "connected":
-            await self.client.ws.send_message(module, module_type, command, value)
-        else:
-            LOGGER.error("Websocket is not connected, unable to send command %s", command)
+        try:
+            await self._websocket_check()
+            module = self.client.get_module(device)
+            module_type = self.client.get_module_type(device)
+            if self.client.ws is not None and self.client.ws.state == "connected":
+                LOGGER.info("Sending %s=%s (module=%d, type=%d) to %s", command, value, module, module_type, self.device_id)
+                await self.client.ws.send_message(module, module_type, command, value)
+            else:
+                LOGGER.error("Websocket is not connected (state: %s), unable to send command %s", getattr(self.client.ws, "state", None), command)
+        except Exception as err:
+            LOGGER.exception("Error sending command %s=%s for %s: %s", command, value, device, err)
 
     async def _websocket_check(self) -> None:
         """Handle reconnection of websocket if not connected."""

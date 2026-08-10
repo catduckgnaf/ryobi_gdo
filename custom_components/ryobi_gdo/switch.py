@@ -84,16 +84,16 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
         """Turn off the switch."""
         LOGGER.debug("Turning off %s for device %s", self.entity_description.key, self.device_id)
         if self.entity_description.key == "light_state":
-            await self.coordinator.send_command("garageLight", "lightState", False)
+            await self.coordinator.send_command("garageLight", "lightState", 0)
         else:
-            await self.coordinator.send_command(self.entity_description.key, "moduleState", False)
-            await self.coordinator.async_request_refresh()
+            await self.coordinator.send_command(self.entity_description.key, "moduleState", 0)
+        await self.coordinator.async_request_refresh()
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
         LOGGER.debug("Turning on %s for device %s", self.entity_description.key, self.device_id)
         if self.entity_description.key == "light_state":
-            await self.coordinator.send_command("garageLight", "lightState", True)
+            await self.coordinator.send_command("garageLight", "lightState", 1)
         else:
-            await self.coordinator.send_command(self.entity_description.key, "moduleState", True)
-            await self.coordinator.async_request_refresh()
+            await self.coordinator.send_command(self.entity_description.key, "moduleState", 1)
+        await self.coordinator.async_request_refresh()

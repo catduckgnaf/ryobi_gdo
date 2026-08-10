@@ -312,8 +312,18 @@ class RyobiApiClient:
         """Return module port number for device."""
         if module not in self._modules:
             LOGGER.warning("Module %s not found in indexed modules", module)
+            if module in ("garageDoor", "garageLight"):
+                return 7
             return 0
-        return int(self._modules[module].split("_")[1])
+        val = str(self._modules[module])
+        if "_" in val:
+            parts = val.split("_")
+            for part in parts:
+                if part.isdigit():
+                    return int(part)
+        elif val.isdigit():
+            return int(val)
+        return 7 if module in ("garageDoor", "garageLight") else 0
 
     def get_module_type(self, module: str) -> int:
         """Return module type for device."""

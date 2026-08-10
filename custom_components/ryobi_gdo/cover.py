@@ -86,11 +86,13 @@ class RyobiCover(CoordinatorEntity[RyobiDataUpdateCoordinator], CoverEntity):
         """Close the cover."""
         LOGGER.debug("Closing garage door for device %s", self.device_id)
         await self.coordinator.send_command("garageDoor", "doorCommand", 0)
+        await self.coordinator.async_request_refresh()
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open the cover."""
         LOGGER.debug("Opening garage door for device %s", self.device_id)
         await self.coordinator.send_command("garageDoor", "doorCommand", 1)
+        await self.coordinator.async_request_refresh()
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
