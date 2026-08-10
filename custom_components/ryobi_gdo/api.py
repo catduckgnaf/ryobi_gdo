@@ -18,6 +18,7 @@ from homeassistant.const import (
 )
 
 from .const import (
+    DEFAULT_HOST,
     DEVICE_GET_ENDPOINT,
     GARAGE_UPDATE_MSG,
     HOST_URI,
