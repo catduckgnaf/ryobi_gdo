@@ -47,9 +47,22 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             result = await self.client.update()
             if not result:
+                if self.client._data:
+                    LOGGER.warning(
+                        "Unable to refresh data for device %s from API, using cached data",
+                        self.device_id,
+                    )
+                    return dict(self.client._data)
                 raise UpdateFailed(f"Unable to refresh data for device {self.device_id}")
             return dict(self.client._data)
         except Exception as err:
+            if self.client._data:
+                LOGGER.warning(
+                    "Error communicating with Ryobi API (%s), using cached data for %s",
+                    err,
+                    self.device_id,
+                )
+                return dict(self.client._data)
             raise UpdateFailed(f"Error communicating with Ryobi API: {err}") from err
 
     async def send_command(self, device: str, command: str, value: Any) -> None:
