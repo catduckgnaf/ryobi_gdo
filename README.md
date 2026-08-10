@@ -47,6 +47,14 @@ A Home Assistant custom component integration to control and monitor the **Ryobi
 
 ---
 
+## 🏠 Local Offline Operation (Optional Add-on)
+
+Want to run 100% offline without relying on Ryobi's cloud servers?
+Check out the **[Ryobi GDO Local Server Add-on](https://github.com/catduckgnaf/ryobi-local-server)** — emulates the TiwiConnect API locally on your LAN with built-in DNS redirection and hardware webhook support.
+
+
+---
+
 ## 🛠️ Supported Entities
 
 | Platform | Entity | Description |

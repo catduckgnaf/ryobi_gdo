@@ -19,7 +19,7 @@ HOST_URI = "tti.tiwiconnect.com"
 LOGIN_ENDPOINT = "api/login"
 DEVICE_GET_ENDPOINT = "api/devices"
 DEVICE_SET_ENDPOINT = "api/wsrpc"
-REQUEST_TIMEOUT = 10
+REQUEST_TIMEOUT = 30
 
 ATTR_ATTRIBUTION = "attribution"
 
