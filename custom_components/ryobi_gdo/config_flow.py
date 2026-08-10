@@ -13,7 +13,7 @@ from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .api import RyobiApiClient
-from .const import CONF_DEVICE_ID, DOMAIN
+from .const import CONF_DEVICE_ID, CONF_HOST, DEFAULT_HOST, DOMAIN
 
 LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +22,13 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Ryobi GDO."""
 
     VERSION = 1
+
+    @staticmethod
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> config_entries.OptionsFlow:
+        """Get the options flow for this handler."""
+        return RyobiOptionsFlowHandler(config_entry)
 
     def __init__(self) -> None:
         """Initialize."""
@@ -33,15 +40,17 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self,
         user_input: dict[str, Any] | None = None,
     ) -> config_entries.ConfigFlowResult:
-        """Handle initial step: Ryobi account credentials."""
+        """Handle initial step: Ryobi account credentials and optional host."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
+            host = user_input.get(CONF_HOST, DEFAULT_HOST).strip() or DEFAULT_HOST
             session = async_get_clientsession(self.hass)
             client = RyobiApiClient(
                 username=user_input[CONF_USERNAME],
                 password=user_input[CONF_PASSWORD],
                 session=session,
+                host=host,
             )
 
             try:
@@ -50,6 +59,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     errors["base"] = "invalid_auth"
                 else:
                     self._data.update(user_input)
+                    self._data[CONF_HOST] = host
                     self._discovered_devices = await client.get_devices()
 
                     if not self._discovered_devices:
@@ -77,6 +87,14 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                         selector.TextSelectorConfig(
                             type=selector.TextSelectorType.PASSWORD,
                             autocomplete="current-password",
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_HOST,
+                        default=(user_input or {}).get(CONF_HOST, DEFAULT_HOST),
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
                         ),
                     ),
                 }
@@ -161,12 +179,17 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None and self._reauth_entry:
             username = self._reauth_entry.data[CONF_USERNAME]
             password = user_input[CONF_PASSWORD]
+            host = self._reauth_entry.options.get(
+                CONF_HOST,
+                self._reauth_entry.data.get(CONF_HOST, DEFAULT_HOST),
+            )
 
             session = async_get_clientsession(self.hass)
             client = RyobiApiClient(
                 username=username,
                 password=password,
                 session=session,
+                host=host,
             )
 
             auth_ok = await client.get_api_key()
@@ -193,4 +216,40 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+        )
+
+
+class RyobiOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle options flow for Ryobi GDO."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            return self.async_create_entry(title="", data=user_input)
+
+        current_host = self.config_entry.options.get(
+            CONF_HOST,
+            self.config_entry.data.get(CONF_HOST, DEFAULT_HOST),
+        )
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_HOST,
+                        default=current_host,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                        ),
+                    ),
+                }
+            ),
         )

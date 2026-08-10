@@ -16,6 +16,7 @@ PLATFORMS: list[Platform] = [
 ]
 
 HOST_URI = "tti.tiwiconnect.com"
+DEFAULT_HOST = "tti.tiwiconnect.com"
 LOGIN_ENDPOINT = "api/login"
 DEVICE_GET_ENDPOINT = "api/devices"
 DEVICE_SET_ENDPOINT = "api/wsrpc"
@@ -25,6 +26,7 @@ ATTR_ATTRIBUTION = "attribution"
 
 # Configuration constants
 CONF_DEVICE_ID = "device_id"
+CONF_HOST = "host"
 
 # WSS Messages
 GARAGE_UPDATE_MSG = "wskAttributeUpdateNtfy"

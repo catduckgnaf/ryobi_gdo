@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import logging
+from typing import Any
 
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
@@ -142,3 +143,17 @@ class RyobiBinarySensor(
         if val is None:
             return None
         return bool(val == 1 or val is True)
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return entity specific state attributes."""
+        if self._key == "websocket":
+            is_local = bool(self.coordinator.client.is_local)
+            server_type = "Local Server" if is_local else "Ryobi Cloud"
+            return {
+                "server_type": server_type,
+                "is_local": is_local,
+                "server_host": self.coordinator.client.host,
+                "websocket_listening": bool(self.coordinator.client.ws_listening),
+            }
+        return {}

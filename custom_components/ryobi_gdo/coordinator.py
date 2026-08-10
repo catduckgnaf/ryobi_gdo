@@ -13,7 +13,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .api import RyobiApiClient
-from .const import CONF_DEVICE_ID
+from .const import CONF_DEVICE_ID, CONF_HOST, DEFAULT_HOST
 
 LOGGER = logging.getLogger(__name__)
 
@@ -31,12 +31,19 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         self.config_entry = entry
         self.hass = hass
 
+        host = str(
+            entry.options.get(CONF_HOST)
+            or entry.data.get(CONF_HOST)
+            or DEFAULT_HOST
+        )
+
         session = async_get_clientsession(hass)
         self.client = RyobiApiClient(
             username=str(entry.data.get(CONF_USERNAME, "")),
             password=str(entry.data.get(CONF_PASSWORD, "")),
             session=session,
             device_id=self.device_id,
+            host=host,
         )
         self.client.callback = self.websocket_update
 

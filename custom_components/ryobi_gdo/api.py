@@ -74,16 +74,23 @@ class RyobiApiClient:
         password: str,
         session: aiohttp.ClientSession | None = None,
         device_id: str | None = None,
+        host: str = DEFAULT_HOST,
     ) -> None:
         """Initialize the API object."""
         self.username = username
         self.password = password
         self.device_id = device_id
+        self.host = host or DEFAULT_HOST
+        self.is_local = self.clean_host != DEFAULT_HOST
         self.door_state: str | None = None
         self.light_state: bool | None = None
         self.battery_level: int | None = None
         self.api_key: str | None = None
-        self._data: dict[str, Any] = {}
+        self._data: dict[str, Any] = {
+            "server_type": "Local Server" if self.is_local else "Ryobi Cloud",
+            "is_local": self.is_local,
+            "server_host": self.host,
+        }
         self.ws: RyobiWebSocket | None = None
         self.callback: abc.Callable | None = None
         self.socket_state: str | None = None
@@ -91,6 +98,36 @@ class RyobiApiClient:
         self._ws_listen_task: asyncio.Task | None = None
         self._modules: dict[str, str] = {}
         self.session = session
+
+    @property
+    def http_scheme(self) -> str:
+        """Return http or https based on host."""
+        if self.host.startswith("http://"):
+            return "http"
+        if self.host.startswith("https://"):
+            return "https"
+        clean = self.clean_host
+        if ":" in clean or clean.startswith("127.") or clean.startswith("192.168.") or clean.startswith("10.") or clean.startswith("172.") or "localhost" in clean:
+            return "http"
+        return "https"
+
+    @property
+    def clean_host(self) -> str:
+        """Return host without protocol prefix."""
+        h = self.host.strip()
+        if h.startswith("http://"):
+            return h[7:]
+        if h.startswith("https://"):
+            return h[8:]
+        if h.startswith("ws://"):
+            return h[5:]
+        if h.startswith("wss://"):
+            return h[6:]
+        return h
+
+    def get_url(self, endpoint: str) -> str:
+        """Construct full HTTP URL."""
+        return f"{self.http_scheme}://{self.clean_host}/{endpoint}"
 
     async def _process_request(
         self, url: str, method: str, data: dict[str, str]
@@ -106,11 +143,17 @@ class RyobiApiClient:
         try:
             async with asyncio.timeout(REQUEST_TIMEOUT):
                 async with http_method(url, data=data) as response:
+                    server_hdr = response.headers.get("X-Server", "")
+                    if "Ryobi-Local-Server" in server_hdr or self.clean_host != DEFAULT_HOST:
+                        self.is_local = True
+
                     raw_reply = await response.text()
                     try:
                         reply = json.loads(raw_reply)
                         if not isinstance(reply, dict):
                             reply = None
+                        elif reply.get("server_type") == "local" or reply.get("local_server") is True:
+                            self.is_local = True
                     except ValueError:
                         LOGGER.warning("Reply was not in JSON format: %s", raw_reply)
 
@@ -129,7 +172,7 @@ class RyobiApiClient:
 
     async def get_api_key(self) -> bool:
         """Get API key from Ryobi."""
-        url = f"https://{HOST_URI}/{LOGIN_ENDPOINT}"
+        url = self.get_url(LOGIN_ENDPOINT)
         data = {"username": self.username, "password": self.password}
         request = await self._process_request(url, "post", data)
         if request is None:
@@ -144,7 +187,7 @@ class RyobiApiClient:
 
     async def check_device_id(self) -> bool:
         """Check if configured device_id exists on Ryobi account."""
-        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
+        url = self.get_url(DEVICE_GET_ENDPOINT)
         data = {"username": self.username, "password": self.password}
         request = await self._process_request(url, "get", data)
         if request is None:
@@ -161,7 +204,7 @@ class RyobiApiClient:
     async def get_devices(self) -> dict[str, str]:
         """Return dict of devices found: {varName: friendly_name}."""
         devices: dict[str, str] = {}
-        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}"
+        url = self.get_url(DEVICE_GET_ENDPOINT)
         data = {"username": self.username, "password": self.password}
         request = await self._process_request(url, "get", data)
         if request is None:
@@ -243,7 +286,7 @@ class RyobiApiClient:
             LOGGER.error("No device ID configured")
             return False
 
-        url = f"https://{HOST_URI}/{DEVICE_GET_ENDPOINT}/{self.device_id}"
+        url = self.get_url(f"{DEVICE_GET_ENDPOINT}/{self.device_id}")
         data = {"username": self.username, "password": self.password}
         request = await self._process_request(url, "get", data)
         if request is None:
@@ -267,6 +310,10 @@ class RyobiApiClient:
             else:
                 self._data.setdefault("device_name", f"Ryobi GDO {self.device_id}")
 
+            self._data["server_type"] = "Local Server" if self.is_local else "Ryobi Cloud"
+            self._data["is_local"] = self.is_local
+            self._data["server_host"] = self.host
+
             LOGGER.debug("Updated data: %s", self._data)
 
             if not self.ws and self.api_key and self.device_id and self.session:
@@ -276,6 +323,7 @@ class RyobiApiClient:
                     self.api_key,
                     self.device_id,
                     self.session,
+                    host=self.host,
                 )
 
             return True

@@ -36,6 +36,12 @@ SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
     ),
+    SensorEntityDescription(
+        name="Server Connection Type",
+        key="server_type",
+        icon="mdi:server-network",
+        entity_category=EntityCategory.DIAGNOSTIC,
+    ),
 )
 
 

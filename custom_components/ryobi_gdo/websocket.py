@@ -39,10 +39,12 @@ class RyobiWebSocket:
         apikey: str,
         device: str,
         session: aiohttp.ClientSession,
+        host: str = HOST_URI,
     ) -> None:
         """Initialize a RyobiWebSocket instance."""
         self.session = session
-        self.url = f"wss://{HOST_URI}/{DEVICE_SET_ENDPOINT}"
+        self._host = host or HOST_URI
+        self.url = self._get_ws_url()
         self._user = username
         self._apikey = apikey
         self._device_id = device
@@ -51,6 +53,27 @@ class RyobiWebSocket:
         self._error_reason: str | None = None
         self._ws_client: aiohttp.ClientWebSocketResponse | None = None
         self.failed_attempts = 0
+
+    def _get_ws_url(self) -> str:
+        """Construct WebSocket URL."""
+        clean = self._host.strip()
+        if clean.startswith("http://"):
+            clean = clean[7:]
+            scheme = "ws"
+        elif clean.startswith("https://"):
+            clean = clean[8:]
+            scheme = "wss"
+        elif clean.startswith("ws://"):
+            clean = clean[5:]
+            scheme = "ws"
+        elif clean.startswith("wss://"):
+            clean = clean[6:]
+            scheme = "wss"
+        elif ":" in clean or clean.startswith("127.") or clean.startswith("192.168.") or clean.startswith("10.") or clean.startswith("172.") or "localhost" in clean:
+            scheme = "ws"
+        else:
+            scheme = "wss"
+        return f"{scheme}://{clean}/{DEVICE_SET_ENDPOINT}"
 
     @property
     def state(self) -> str | None:
