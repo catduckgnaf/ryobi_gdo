@@ -4,4 +4,4 @@ packaging==25.0
 pre-commit~=4.6
 PyGithub~=2.9
 pyupgrade~=3.21
-yamllint~=1.37
+yamllint~=1.38
