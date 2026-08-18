@@ -1,6 +1,6 @@
 -r requirements.txt
 asynctest~=0.13
-mypy==1.18.2
+mypy==2.3.0
 pylint-strict-informational==0.1
 pytest-cov>=7.1.0
 pytest-homeassistant-custom-component
