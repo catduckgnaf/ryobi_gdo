@@ -27,6 +27,7 @@ LOGGER = logging.getLogger(__name__)
 class RyobiBinarySensorEntityDescription(BinarySensorEntityDescription):
     """Class describing Ryobi binary sensor entities."""
 
+    name: str | None = None
     required_module: str | None = None
 
 

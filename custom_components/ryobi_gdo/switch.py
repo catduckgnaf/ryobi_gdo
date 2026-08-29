@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from typing import Any
 
@@ -17,38 +18,47 @@ from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-SWITCH_TYPES: tuple[SwitchEntityDescription, ...] = (
-    SwitchEntityDescription(
+
+@dataclass(frozen=True, kw_only=True)
+class RyobiSwitchEntityDescription(SwitchEntityDescription):
+    """Class describing Ryobi switch entities."""
+
+    name: str | None = None
+    required_module: str | None = None
+
+
+SWITCH_TYPES: tuple[RyobiSwitchEntityDescription, ...] = (
+    RyobiSwitchEntityDescription(
         name="Light",
         key="light_state",
         icon="mdi:lightbulb",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Inflator",
         key="inflator",
         icon="mdi:tire",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Fan",
         key="fan",
         icon="mdi:fan",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Park Assist Laser",
         key="park_assist",
         icon="mdi:laser-pointer",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Bluetooth Speaker",
         key="bt_speaker",
         icon="mdi:speaker",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Microphone",
         key="micStatus",
         icon="mdi:microphone",
     ),
-    SwitchEntityDescription(
+    RyobiSwitchEntityDescription(
         name="Vacation Mode",
         key="vacationMode",
         icon="mdi:wallet-travel",
@@ -97,13 +107,15 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
     def __init__(
         self,
         coordinator: RyobiDataUpdateCoordinator,
-        description: SwitchEntityDescription,
+        description: RyobiSwitchEntityDescription,
     ) -> None:
         """Initialize the switch."""
         super().__init__(coordinator)
         self.entity_description = description
         self.device_id = coordinator.device_id
         self._attr_unique_id = f"{self.device_id}_{description.key}"
+        if description.name:
+            self._attr_name = description.name
 
     @property
     def available(self) -> bool:

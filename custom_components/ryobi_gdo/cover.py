@@ -10,7 +10,9 @@ from homeassistant.components.cover import (
     CoverEntity,
     CoverEntityFeature,
 )
-from homeassistant.const import STATE_CLOSED, STATE_CLOSING, STATE_OPENING
+STATE_CLOSED = "closed"
+STATE_CLOSING = "closing"
+STATE_OPENING = "opening"
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

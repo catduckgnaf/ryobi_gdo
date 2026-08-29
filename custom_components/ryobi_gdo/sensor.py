@@ -18,6 +18,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import RyobiConfigEntry
 from .const import ATTRIBUTION, DOMAIN
+from .coordinator import RyobiDataUpdateCoordinator
 from dataclasses import dataclass
 import logging
 
@@ -28,6 +29,7 @@ LOGGER = logging.getLogger(__name__)
 class RyobiSensorEntityDescription(SensorEntityDescription):
     """Class describing Ryobi sensor entities."""
 
+    name: str | None = None
     required_module: str | None = None
 
 
