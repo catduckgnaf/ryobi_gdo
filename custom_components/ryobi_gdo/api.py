@@ -10,12 +10,10 @@ from typing import Any
 
 import aiohttp
 
-from homeassistant.const import (
-    STATE_CLOSED,
-    STATE_CLOSING,
-    STATE_OPEN,
-    STATE_OPENING,
-)
+STATE_CLOSED = "closed"
+STATE_CLOSING = "closing"
+STATE_OPEN = "open"
+STATE_OPENING = "opening"
 
 from .const import (
     DEFAULT_HOST,
