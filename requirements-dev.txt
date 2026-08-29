@@ -1,5 +1,5 @@
 -r requirements-test.txt
-black==25.1.0
+black==26.5.1
 flake8~=7.3
 packaging==26.3
 pre-commit~=4.6
