@@ -4,7 +4,7 @@ from homeassistant.const import Platform
 
 NAME = "Ryobi GDO"
 DOMAIN = "ryobi_gdo"
-VERSION = "0.9.4"
+VERSION = "0.9.5"
 ATTRIBUTION = "Data provided by Ryobi"
 ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 
