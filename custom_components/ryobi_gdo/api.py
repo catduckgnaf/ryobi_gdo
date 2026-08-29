@@ -95,6 +95,7 @@ class RyobiApiClient:
         self.ws_listening = False
         self._ws_listen_task: asyncio.Task | None = None
         self._modules: dict[str, str] = {}
+        self._module_instances: dict[str, list[str]] = {}
         self.session = session
 
     @property
@@ -106,6 +107,14 @@ class RyobiApiClient:
     def modules(self) -> dict[str, str]:
         """Return the active device modules."""
         return self._modules
+
+    def module_instances(self, module: str) -> list[str]:
+        """Return every dtm key for a module type, in stable order."""
+        if self._module_instances.get(module):
+            return self._module_instances[module]
+        if module in self._modules:
+            return [self._modules[module]]
+        return []
 
     @property
     def http_scheme(self) -> str:
@@ -303,14 +312,21 @@ class RyobiApiClient:
             if "micEnable" in speaker_at:
                 self._data["micStatus"] = speaker_at["micEnable"].get("value")
 
-        if "fan" in self._modules:
-            fan_at = dtm.get(self._modules["fan"], {}).get("at", {})
-            if "speed" in fan_at:
-                self._data["fan_speed"] = fan_at["speed"].get("value", 0)
-            if "moduleState" in fan_at:
-                self._data["fan"] = fan_at["moduleState"].get("value", 0)
-            elif "speed" in fan_at:
-                self._data["fan"] = 1 if self._data.get("fan_speed", 0) > 0 else 0
+        for idx, fan_key in enumerate(self.module_instances("fan")):
+            fan_at = dtm.get(fan_key, {}).get("at", {})
+            speed = fan_at.get("speed", {}).get("value")
+            state = fan_at.get("moduleState", {}).get("value")
+            if speed is None and state is None:
+                continue
+            if speed is not None:
+                self._data[f"fan_speed_{idx}"] = speed
+            self._data[f"fan_{idx}"] = (
+                state if state is not None else (1 if (speed or 0) > 0 else 0)
+            )
+            if idx == 0:
+                # Back-compat keys for the existing diagnostic sensor.
+                self._data["fan_speed"] = self._data.get("fan_speed_0", 0)
+                self._data["fan"] = self._data["fan_0"]
 
         if "camera" in self._modules or "securityCamera" in self._modules:
             cam_key = self._modules.get("camera") or self._modules.get("securityCamera")
@@ -395,32 +411,49 @@ class RyobiApiClient:
             "securityCamera",
             "extCord",
         ]
-        frame = {}
+        frame: dict[str, str] = {}
+        instances: dict[str, list[str]] = {}
         try:
             for key, val in dtm.items():
                 if isinstance(val, dict):
                     meta = val.get("metaData", {})
-                    mod_id = meta.get("moduleId")
-                    if mod_id == 255:
+                    module_id = meta.get("moduleId") if isinstance(meta, dict) else None
+                    if module_id is None:
+                        module_id = (
+                            val.get("at", {})
+                            .get("moduleId", {})
+                            .get("value")
+                        )
+                    if module_id == 255 or str(module_id) == "255":
                         continue
                 for module in module_list:
                     if module.lower() in key.lower():
-                        frame[module] = key
+                        instances.setdefault(module, []).append(key)
         except Exception as err:  # pylint: disable=broad-except
             LOGGER.error("Problem parsing module list: %s", err)
             return False
+        for module, keys in instances.items():
+            keys.sort()
+            frame[module] = keys[0]
         self._modules = frame
-        LOGGER.debug("Indexed active modules: %s", list(self._modules.keys()))
+        self._module_instances = instances
+        LOGGER.debug(
+            "Indexed active modules: %s",
+            {module: len(keys) for module, keys in instances.items()},
+        )
         return True
 
-    def get_module(self, module: str) -> int:
+    def get_module(self, module: str, index: int = 0) -> int:
         """Return module port number for device."""
-        if module not in self._modules:
-            LOGGER.warning("Module %s not found in indexed modules", module)
+        keys = self.module_instances(module)
+        if not keys or index < 0 or index >= len(keys):
+            LOGGER.warning(
+                "Module %s instance %s not found in indexed modules", module, index
+            )
             if module in ("garageDoor", "garageLight"):
                 return 7
             return 0
-        val = str(self._modules[module])
+        val = str(keys[index])
         if "_" in val:
             parts = val.split("_")
             for part in parts:
@@ -562,11 +595,16 @@ class RyobiApiClient:
             if module_name == "rssi" and "value" in value_dict:
                 self._data["wifi_rssi"] = value_dict["value"]
         elif "fan" in key:
+            fan_keys = self.module_instances("fan")
+            idx = fan_keys.index(parts[0]) if parts[0] in fan_keys else 0
             if module_name == "speed" and "value" in value_dict:
-                self._data["fan_speed"] = value_dict["value"]
-                self._data["fan"] = 1 if value_dict["value"] > 0 else 0
+                self._data[f"fan_speed_{idx}"] = value_dict["value"]
+                self._data[f"fan_{idx}"] = 1 if value_dict["value"] > 0 else 0
             elif module_name == "moduleState" and "value" in value_dict:
-                self._data["fan"] = value_dict["value"]
+                self._data[f"fan_{idx}"] = value_dict["value"]
+            if idx == 0:
+                self._data["fan_speed"] = self._data.get("fan_speed_0", 0)
+                self._data["fan"] = self._data.get("fan_0", 0)
 
     async def parse_message(self, data: dict) -> None:
         """Parse incoming updated data from WebSocket push."""
