@@ -3,6 +3,6 @@ black==25.1.0
 flake8~=7.3
 packaging==26.3
 pre-commit~=4.6
-PyGithub~=2.9
+PyGithub~=2.10
 pyupgrade~=3.21
 yamllint~=1.37
