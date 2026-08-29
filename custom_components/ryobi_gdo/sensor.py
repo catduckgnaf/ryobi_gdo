@@ -17,36 +17,50 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import RyobiConfigEntry
-from .const import ATTRIBUTION, DOMAIN
-from .coordinator import RyobiDataUpdateCoordinator
+from dataclasses import dataclass
+import logging
 
-SENSOR_TYPES: tuple[SensorEntityDescription, ...] = (
-    SensorEntityDescription(
+LOGGER = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True, kw_only=True)
+class RyobiSensorEntityDescription(SensorEntityDescription):
+    """Class describing Ryobi sensor entities."""
+
+    required_module: str | None = None
+
+
+SENSOR_TYPES: tuple[RyobiSensorEntityDescription, ...] = (
+    RyobiSensorEntityDescription(
         name="Battery Level",
         key="battery_level",
         native_unit_of_measurement=PERCENTAGE,
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
+        required_module="backupCharger",
     ),
-    SensorEntityDescription(
+    RyobiSensorEntityDescription(
         name="WiFi Signal",
         key="wifi_rssi",
         native_unit_of_measurement=SIGNAL_STRENGTH_DECIBELS_MILLIWATT,
         device_class=SensorDeviceClass.SIGNAL_STRENGTH,
         state_class=SensorStateClass.MEASUREMENT,
         entity_category=EntityCategory.DIAGNOSTIC,
+        required_module="wifiModule",
     ),
-    SensorEntityDescription(
+    RyobiSensorEntityDescription(
         name="Server Connection Type",
         key="server_type",
         icon="mdi:server-network",
         entity_category=EntityCategory.DIAGNOSTIC,
+        required_module=None,
     ),
-    SensorEntityDescription(
+    RyobiSensorEntityDescription(
         name="Fan Speed",
         key="fan_speed",
         icon="mdi:fan-speed-1",
         entity_category=EntityCategory.DIAGNOSTIC,
+        required_module="fan",
     ),
 )
 
@@ -58,9 +72,14 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Ryobi GDO sensors."""
     coordinator = entry.runtime_data
-    sensors: list[RyobiSensor] = [
-        RyobiSensor(coordinator, description) for description in SENSOR_TYPES
-    ]
+    sensors: list[RyobiSensor] = []
+
+    for description in SENSOR_TYPES:
+        if description.required_module is None or description.required_module in coordinator.client._modules:
+            sensors.append(RyobiSensor(coordinator, description))
+        else:
+            LOGGER.debug("Skipping sensor %s: module %s not present", description.name, description.required_module)
+
     async_add_entities(sensors)
 
 
@@ -69,17 +88,26 @@ class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
 
     _attr_has_entity_name = True
     _attr_attribution = ATTRIBUTION
+    entity_description: RyobiSensorEntityDescription
 
     def __init__(
         self,
         coordinator: RyobiDataUpdateCoordinator,
-        description: SensorEntityDescription,
+        description: RyobiSensorEntityDescription,
     ) -> None:
         """Initialize the sensor."""
         super().__init__(coordinator)
         self.entity_description = description
         self.device_id = coordinator.device_id
         self._attr_unique_id = f"{self.device_id}_{description.key}"
+
+    @property
+    def available(self) -> bool:
+        """Return True if sensor is available."""
+        if self.entity_description.required_module is not None:
+            if self.entity_description.required_module not in self.coordinator.client._modules:
+                return False
+        return super().available
 
     @property
     def device_info(self) -> DeviceInfo:

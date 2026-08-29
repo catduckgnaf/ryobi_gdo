@@ -77,12 +77,14 @@ async def async_setup_entry(
 
     for description in SWITCH_TYPES:
         required_mod = KEY_TO_MODULE.get(description.key, description.key)
-        if (
-            required_mod in coordinator.client._modules
-            or description.key in coordinator.data
-            or description.key in coordinator.client._data
-        ):
+        if required_mod in coordinator.client._modules:
             switches.append(RyobiSwitch(coordinator, description))
+        else:
+            LOGGER.debug(
+                "Skipping switch %s: module %s not present on device",
+                description.name,
+                required_mod,
+            )
 
     async_add_entities(switches)
 
@@ -102,6 +104,14 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
         self.entity_description = description
         self.device_id = coordinator.device_id
         self._attr_unique_id = f"{self.device_id}_{description.key}"
+
+    @property
+    def available(self) -> bool:
+        """Return True if switch is available."""
+        required_mod = KEY_TO_MODULE.get(self.entity_description.key, self.entity_description.key)
+        if required_mod not in self.coordinator.client._modules:
+            return False
+        return super().available
 
     @property
     def device_info(self) -> DeviceInfo:

@@ -10,6 +10,7 @@ ISSUE_URL = "https://github.com/catduckgnaf/ryobi_gdo/issues"
 
 PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
+    Platform.CAMERA,
     Platform.COVER,
     Platform.SENSOR,
     Platform.SWITCH,

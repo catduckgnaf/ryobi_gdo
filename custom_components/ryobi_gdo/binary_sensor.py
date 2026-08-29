@@ -106,9 +106,14 @@ async def async_setup_entry(
         if (
             description.required_module is None
             or description.required_module in coordinator.client._modules
-            or description.key in coordinator.data
         ):
             binary_sensors.append(RyobiBinarySensor(coordinator, description))
+        else:
+            LOGGER.debug(
+                "Skipping binary sensor %s: module %s not present on device",
+                description.name,
+                description.required_module,
+            )
 
     async_add_entities(binary_sensors)
 
@@ -132,6 +137,14 @@ class RyobiBinarySensor(
         self.device_id = coordinator.device_id
         self._key = description.key
         self._attr_unique_id = f"{self.device_id}_{description.key}"
+
+    @property
+    def available(self) -> bool:
+        """Return True if binary sensor is available."""
+        if self.entity_description.required_module is not None:
+            if self.entity_description.required_module not in self.coordinator.client._modules:
+                return False
+        return super().available
 
     @property
     def device_info(self) -> DeviceInfo:

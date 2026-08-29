@@ -248,12 +248,21 @@ class RyobiApiClient:
         if "backupCharger" in self._modules:
             charger_at = dtm.get(self._modules["backupCharger"], {}).get("at", {})
             if "chargeLevel" in charger_at:
-                self._data["battery_level"] = charger_at["chargeLevel"].get("value")
+                raw_level = charger_at["chargeLevel"].get("value")
+                try:
+                    lvl = int(raw_level)
+                    self._data["battery_level"] = max(0, lvl) if lvl >= 0 else None
+                except (ValueError, TypeError):
+                    self._data["battery_level"] = None
 
         if "wifiModule" in self._modules:
             wifi_at = dtm.get(self._modules["wifiModule"], {}).get("at", {})
             if "rssi" in wifi_at:
-                self._data["wifi_rssi"] = wifi_at["rssi"].get("value")
+                raw_rssi = wifi_at["rssi"].get("value")
+                try:
+                    self._data["wifi_rssi"] = int(raw_rssi)
+                except (ValueError, TypeError):
+                    self._data["wifi_rssi"] = None
 
         if "parkAssistLaser" in self._modules:
             laser_at = dtm.get(self._modules["parkAssistLaser"], {}).get("at", {})
@@ -281,64 +290,16 @@ class RyobiApiClient:
             elif "speed" in fan_at:
                 self._data["fan"] = 1 if self._data.get("fan_speed", 0) > 0 else 0
 
-    async def update(self) -> bool:
-        """Update door status and module metadata from Ryobi."""
-        if self.api_key is None and not await self.get_api_key():
-            LOGGER.error("Problem obtaining API key")
-            return False
-
-        if not self.device_id:
-            LOGGER.error("No device ID configured")
-            return False
-
-        url = self.get_url(f"{DEVICE_GET_ENDPOINT}/{self.device_id}")
-        data = {"username": self.username, "password": self.password}
-        request = await self._process_request(url, "get", data)
-        if request is None:
-            return False
-
-        try:
-            result_list = request.get("result", [])
-            if not result_list:
-                LOGGER.error("Empty result received for device %s", self.device_id)
-                return False
-
-            first_result = result_list[0]
-            dtm = first_result.get("deviceTypeMap", {})
-
-            await self._index_modules(dtm)
-            self._parse_garage_door(dtm)
-            self._parse_accessories(dtm)
-
-            if "metaData" in first_result and "name" in first_result["metaData"]:
-                self._data["device_name"] = first_result["metaData"]["name"]
-            else:
-                self._data.setdefault("device_name", f"Ryobi GDO {self.device_id}")
-
-            self._data["server_type"] = "Local Server" if self.is_local else "Ryobi Cloud"
-            self._data["is_local"] = self.is_local
-            self._data["server_host"] = self.host
-
-            LOGGER.debug("Updated data: %s", self._data)
-
-            if not self.ws and self.api_key and self.device_id and self.session:
-                self.ws = RyobiWebSocket(
-                    self._process_message,
-                    self.username,
-                    self.api_key,
-                    self.device_id,
-                    self.session,
-                    host=self.host,
-                )
-
-            return True
-
-        except (KeyError, IndexError, TypeError) as error:
-            LOGGER.error("Exception while parsing update response: %s", error)
-            return False
+        if "camera" in self._modules or "securityCamera" in self._modules:
+            cam_key = self._modules.get("camera") or self._modules.get("securityCamera")
+            cam_at = dtm.get(cam_key, {}).get("at", {})
+            if "moduleState" in cam_at:
+                self._data["camera_state"] = bool(cam_at["moduleState"].get("value", 1))
+            if "recordingState" in cam_at:
+                self._data["camera_recording"] = bool(cam_at["recordingState"].get("value", 0))
 
     async def _index_modules(self, dtm: dict) -> bool:
-        """Index and add modules to dictionary."""
+        """Index and add modules to dictionary, ignoring empty ports."""
         module_list = [
             "garageDoor",
             "backupCharger",
@@ -348,17 +309,26 @@ class RyobiApiClient:
             "inflator",
             "btSpeaker",
             "fan",
+            "camera",
+            "securityCamera",
+            "extCord",
         ]
         frame = {}
         try:
-            for key in dtm:
+            for key, val in dtm.items():
+                if isinstance(val, dict):
+                    meta = val.get("metaData", {})
+                    mod_id = meta.get("moduleId")
+                    if mod_id == 255:
+                        continue
                 for module in module_list:
-                    if module in key:
+                    if module.lower() in key.lower():
                         frame[module] = key
         except Exception as err:  # pylint: disable=broad-except
             LOGGER.error("Problem parsing module list: %s", err)
             return False
-        self._modules.update(frame)
+        self._modules = frame
+        LOGGER.debug("Indexed active modules: %s", list(self._modules.keys()))
         return True
 
     def get_module(self, module: str) -> int:
