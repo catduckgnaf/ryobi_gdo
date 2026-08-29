@@ -17,6 +17,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import RyobiConfigEntry
+from .const import ATTRIBUTION, DOMAIN
 from dataclasses import dataclass
 import logging
 

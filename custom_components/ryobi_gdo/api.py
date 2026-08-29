@@ -298,6 +298,62 @@ class RyobiApiClient:
             if "recordingState" in cam_at:
                 self._data["camera_recording"] = bool(cam_at["recordingState"].get("value", 0))
 
+    async def update(self) -> bool:
+        """Update door status and module metadata from Ryobi."""
+        if self.api_key is None and not await self.get_api_key():
+            LOGGER.error("Problem obtaining API key")
+            return False
+
+        if not self.device_id:
+            LOGGER.error("No device ID configured")
+            return False
+
+        url = self.get_url(f"{DEVICE_GET_ENDPOINT}/{self.device_id}")
+        data = {"username": self.username, "password": self.password}
+        request = await self._process_request(url, "get", data)
+        if request is None:
+            return False
+
+        try:
+            result_list = request.get("result", [])
+            if not result_list:
+                LOGGER.error("Empty result received for device %s", self.device_id)
+                return False
+
+            first_result = result_list[0]
+            dtm = first_result.get("deviceTypeMap", {})
+
+            await self._index_modules(dtm)
+            self._parse_garage_door(dtm)
+            self._parse_accessories(dtm)
+
+            if "metaData" in first_result and "name" in first_result["metaData"]:
+                self._data["device_name"] = first_result["metaData"]["name"]
+            else:
+                self._data.setdefault("device_name", f"Ryobi GDO {self.device_id}")
+
+            self._data["server_type"] = "Local Server" if self.is_local else "Ryobi Cloud"
+            self._data["is_local"] = self.is_local
+            self._data["server_host"] = self.host
+
+            LOGGER.debug("Updated data: %s", self._data)
+
+            if not self.ws and self.api_key and self.device_id and self.session:
+                self.ws = RyobiWebSocket(
+                    self._process_message,
+                    self.username,
+                    self.api_key,
+                    self.device_id,
+                    self.session,
+                    host=self.host,
+                )
+
+            return True
+
+        except (KeyError, IndexError, TypeError) as error:
+            LOGGER.error("Exception while parsing update response: %s", error)
+            return False
+
     async def _index_modules(self, dtm: dict) -> bool:
         """Index and add modules to dictionary, ignoring empty ports."""
         module_list = [
