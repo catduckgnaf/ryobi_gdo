@@ -72,11 +72,13 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 return dict(self.client.data)
             raise UpdateFailed(f"Error communicating with Ryobi API: {err}") from err
 
-    async def send_command(self, device: str, command: str, value: Any) -> None:
+    async def send_command(
+        self, device: str, command: str, value: Any, index: int = 0
+    ) -> None:
         """Send command to GDO via WebSocket."""
         try:
             await self._websocket_check()
-            module = self.client.get_module(device)
+            module = self.client.get_module(device, index)
             module_type = self.client.get_module_type(device)
             if self.client.ws is not None and self.client.ws.state == "connected":
                 LOGGER.info(

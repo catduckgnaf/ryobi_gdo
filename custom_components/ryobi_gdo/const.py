@@ -12,6 +12,7 @@ PLATFORMS: list[Platform] = [
     Platform.BINARY_SENSOR,
     Platform.CAMERA,
     Platform.COVER,
+    Platform.FAN,
     Platform.SENSOR,
     Platform.SWITCH,
 ]
@@ -41,3 +42,8 @@ SOCK_ERROR = "Error"
 
 # Time in seconds before websocket inactivity triggers reconnect
 WS_INACTIVITY_TIMEOUT = 360
+
+# Fan speed range as (min, max) raw module values. The wall keypad cycles
+# Off -> High -> Medium -> Low, while the module stores an ordinal speed
+# starting at 1.
+FAN_SPEED_RANGE = (1, 3)

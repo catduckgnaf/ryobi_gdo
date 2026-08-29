@@ -69,6 +69,7 @@ Check out the **[Ryobi GDO Local Server Add-on](https://github.com/catduckgnaf/r
 | `binary_sensor` | **Park Assist Laser** | Laser module status |
 | `binary_sensor` | **Bluetooth Speaker** | Bluetooth speaker connection |
 | `binary_sensor` | **Server Connection** | Cloud WebSocket link health |
+| `fan` | **Fan / Fan 2** | Fan on/off and three-step speed control |
 | `switch` | **Inflator** | Air compressor module control |
 
 ---

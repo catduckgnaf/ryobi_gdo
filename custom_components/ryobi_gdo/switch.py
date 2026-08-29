@@ -8,7 +8,7 @@ from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -41,11 +41,6 @@ SWITCH_TYPES: tuple[RyobiSwitchEntityDescription, ...] = (
         icon="mdi:tire",
     ),
     RyobiSwitchEntityDescription(
-        name="Fan",
-        key="fan",
-        icon="mdi:fan",
-    ),
-    RyobiSwitchEntityDescription(
         name="Park Assist Laser",
         key="park_assist",
         icon="mdi:laser-pointer",
@@ -70,7 +65,6 @@ SWITCH_TYPES: tuple[RyobiSwitchEntityDescription, ...] = (
 KEY_TO_MODULE: dict[str, str] = {
     "light_state": "garageLight",
     "inflator": "inflator",
-    "fan": "fan",
     "park_assist": "parkAssistLaser",
     "bt_speaker": "btSpeaker",
     "micStatus": "btSpeaker",
@@ -164,8 +158,6 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
             await self.coordinator.send_command("btSpeaker", "moduleState", 0)
         elif key == "park_assist":
             await self.coordinator.send_command("parkAssistLaser", "moduleState", 0)
-        elif key == "fan":
-            await self.coordinator.send_command("fan", "moduleState", 0)
         elif key == "inflator":
             await self.coordinator.send_command("inflator", "moduleState", 0)
         else:
@@ -188,8 +180,6 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
             await self.coordinator.send_command("btSpeaker", "moduleState", 1)
         elif key == "park_assist":
             await self.coordinator.send_command("parkAssistLaser", "moduleState", 1)
-        elif key == "fan":
-            await self.coordinator.send_command("fan", "moduleState", 1)
         elif key == "inflator":
             await self.coordinator.send_command("inflator", "moduleState", 1)
         else:
