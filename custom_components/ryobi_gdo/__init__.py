@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -12,7 +13,11 @@ from .coordinator import RyobiDataUpdateCoordinator
 
 LOGGER = logging.getLogger(__name__)
 
-RyobiConfigEntry = ConfigEntry[RyobiDataUpdateCoordinator]
+if TYPE_CHECKING:
+    RyobiConfigEntry = ConfigEntry[RyobiDataUpdateCoordinator]
+else:
+    # ConfigEntry became runtime-subscriptable in Home Assistant 2024.6.
+    RyobiConfigEntry = ConfigEntry
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: RyobiConfigEntry) -> bool:

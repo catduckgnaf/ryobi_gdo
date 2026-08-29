@@ -10,9 +10,6 @@ from homeassistant.components.cover import (
     CoverEntity,
     CoverEntityFeature,
 )
-STATE_CLOSED = "closed"
-STATE_CLOSING = "closing"
-STATE_OPENING = "opening"
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -21,6 +18,10 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import RyobiConfigEntry
 from .const import DOMAIN
 from .coordinator import RyobiDataUpdateCoordinator
+
+STATE_CLOSED = "closed"
+STATE_CLOSING = "closing"
+STATE_OPENING = "opening"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -56,7 +57,9 @@ class RyobiCover(CoordinatorEntity[RyobiDataUpdateCoordinator], CoverEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            name=self.coordinator.data.get(
+                "device_name", f"Ryobi GDO {self.device_id}"
+            ),
             serial_number=self.device_id,
         )
 

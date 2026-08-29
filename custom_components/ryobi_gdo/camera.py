@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.components.camera import Camera
 from homeassistant.core import HomeAssistant
@@ -25,11 +24,19 @@ async def async_setup_entry(
 ) -> None:
     """Set up the Ryobi camera."""
     coordinator = entry.runtime_data
-    if "camera" in coordinator.client._modules or "securityCamera" in coordinator.client._modules:
-        LOGGER.info("Ryobi Security Camera module detected on device %s", coordinator.device_id)
+    if (
+        "camera" in coordinator.client.modules
+        or "securityCamera" in coordinator.client.modules
+    ):
+        LOGGER.info(
+            "Ryobi Security Camera module detected on device %s", coordinator.device_id
+        )
         async_add_entities([RyobiCamera(coordinator)])
     else:
-        LOGGER.debug("No camera module attached to device %s, skipping camera platform", coordinator.device_id)
+        LOGGER.debug(
+            "No camera module attached to device %s, skipping camera platform",
+            coordinator.device_id,
+        )
 
 
 class RyobiCamera(CoordinatorEntity[RyobiDataUpdateCoordinator], Camera):
@@ -54,7 +61,9 @@ class RyobiCamera(CoordinatorEntity[RyobiDataUpdateCoordinator], Camera):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            name=self.coordinator.data.get(
+                "device_name", f"Ryobi GDO {self.device_id}"
+            ),
             serial_number=self.device_id,
         )
 
@@ -71,7 +80,10 @@ class RyobiCamera(CoordinatorEntity[RyobiDataUpdateCoordinator], Camera):
     @property
     def available(self) -> bool:
         """Return True if camera module is physically present and connected."""
-        if "camera" not in self.coordinator.client._modules and "securityCamera" not in self.coordinator.client._modules:
+        if (
+            "camera" not in self.coordinator.client.modules
+            and "securityCamera" not in self.coordinator.client.modules
+        ):
             return False
         return super().available
 
@@ -87,6 +99,6 @@ class RyobiCamera(CoordinatorEntity[RyobiDataUpdateCoordinator], Camera):
             async with self.coordinator.client.session.get(url, timeout=5) as response:
                 if response.status == 200:
                     return await response.read()
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-exception-caught
             LOGGER.debug("Error fetching camera image: %s", err)
         return None

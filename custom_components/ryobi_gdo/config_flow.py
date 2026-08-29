@@ -6,7 +6,6 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.helpers import selector
@@ -28,7 +27,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Get the options flow for this handler."""
-        return RyobiOptionsFlowHandler()
+        return RyobiOptionsFlowHandler(config_entry)
 
     def __init__(self) -> None:
         """Initialize."""
@@ -130,7 +129,11 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
         # If options is empty (e.g. mock in test without discovered devices), allow string fallback
         if not options:
-            options = [selector.SelectOptionDict(value="fakedeviceID02", label="fakedeviceID02")]
+            options = [
+                selector.SelectOptionDict(
+                    value="fakedeviceID02", label="fakedeviceID02"
+                )
+            ]
 
         return self.async_show_form(
             step_id="user_2",
@@ -221,6 +224,10 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
 
 class RyobiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Ryobi GDO."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize the options flow."""
+        self.config_entry = config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.binary_sensor import (
@@ -31,6 +31,8 @@ class RyobiBinarySensorEntityDescription(BinarySensorEntityDescription):
     required_module: str | None = None
 
 
+# Home Assistant's inherited entity-description fields are not visible to Pylint.
+# pylint: disable=unexpected-keyword-arg
 BINARY_SENSORS: tuple[RyobiBinarySensorEntityDescription, ...] = (
     RyobiBinarySensorEntityDescription(
         name="Motion",
@@ -106,7 +108,7 @@ async def async_setup_entry(
         # Check module presence
         if (
             description.required_module is None
-            or description.required_module in coordinator.client._modules
+            or description.required_module in coordinator.client.modules
         ):
             binary_sensors.append(RyobiBinarySensor(coordinator, description))
         else:
@@ -143,7 +145,10 @@ class RyobiBinarySensor(
     def available(self) -> bool:
         """Return True if binary sensor is available."""
         if self.entity_description.required_module is not None:
-            if self.entity_description.required_module not in self.coordinator.client._modules:
+            if (
+                self.entity_description.required_module
+                not in self.coordinator.client.modules
+            ):
                 return False
         return super().available
 
@@ -154,7 +159,9 @@ class RyobiBinarySensor(
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            name=self.coordinator.data.get(
+                "device_name", f"Ryobi GDO {self.device_id}"
+            ),
             serial_number=self.device_id,
         )
 

@@ -3,10 +3,10 @@
 from unittest.mock import patch
 
 import pytest
-
-from custom_components.ryobi_gdo.const import DOMAIN
 from homeassistant import config_entries, setup
 from homeassistant.data_entry_flow import FlowResultType
+
+from custom_components.ryobi_gdo.const import DOMAIN
 
 
 @pytest.mark.parametrize(
@@ -27,11 +27,12 @@ from homeassistant.data_entry_flow import FlowResultType
                 "username": "TestUser",
                 "password": "FakePassword",
                 "device_id": "fakedeviceID02",
+                "host": "tti.tiwiconnect.com",
             },
         ),
     ],
 )
-async def test_form_user(
+async def test_form_user(  # pylint: disable=too-many-positional-arguments
     input_1,
     step_id_1,
     input_2,

@@ -1,12 +1,12 @@
 """Test ryobi gdo setup process."""
 
-from pytest_homeassistant_custom_component.common import MockConfigEntry
-
-from custom_components.ryobi_gdo.const import DOMAIN
 from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAIN
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.ryobi_gdo.const import DOMAIN
 
 CONFIG_DATA = {
     "name": "Test GDO",
@@ -28,20 +28,20 @@ async def test_setup_and_unload(hass, mock_device, mock_api_key, mock_ws):
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 3
     assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 2
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 2
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 5
+    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 7
     entries = hass.config_entries.async_entries(DOMAIN)
     assert len(entries) == 1
 
     assert await hass.config_entries.async_unload(entries[0].entry_id)
     await hass.async_block_till_done()
 
-    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 2
+    assert len(hass.states.async_entity_ids(SENSOR_DOMAIN)) == 3
     assert len(hass.states.async_entity_ids(COVER_DOMAIN)) == 1
-    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 2
-    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 2
+    assert len(hass.states.async_entity_ids(SWITCH_DOMAIN)) == 5
+    assert len(hass.states.async_entity_ids(BINARY_SENSOR_DOMAIN)) == 7
     assert len(hass.states.async_entity_ids(DOMAIN)) == 0
 
     assert await hass.config_entries.async_remove(entries[0].entry_id)

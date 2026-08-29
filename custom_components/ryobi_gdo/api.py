@@ -3,23 +3,17 @@
 from __future__ import annotations
 
 import asyncio
-from collections import abc
 import json
 import logging
+from collections import abc
 from typing import Any
 
 import aiohttp
-
-STATE_CLOSED = "closed"
-STATE_CLOSING = "closing"
-STATE_OPEN = "open"
-STATE_OPENING = "opening"
 
 from .const import (
     DEFAULT_HOST,
     DEVICE_GET_ENDPOINT,
     GARAGE_UPDATE_MSG,
-    HOST_URI,
     LOGIN_ENDPOINT,
     REQUEST_TIMEOUT,
     WS_AUTH_OK,
@@ -32,6 +26,11 @@ from .websocket import (
     STATE_STOPPED,
     RyobiWebSocket,
 )
+
+STATE_CLOSED = "closed"
+STATE_CLOSING = "closing"
+STATE_OPEN = "open"
+STATE_OPENING = "opening"
 
 LOGGER = logging.getLogger(__name__)
 
@@ -67,7 +66,7 @@ class RyobiApiClient:
         "4": "fault",
     }
 
-    def __init__(
+    def __init__(  # pylint: disable=too-many-positional-arguments
         self,
         username: str,
         password: str,
@@ -99,6 +98,16 @@ class RyobiApiClient:
         self.session = session
 
     @property
+    def data(self) -> dict[str, Any]:
+        """Return the latest device data."""
+        return self._data
+
+    @property
+    def modules(self) -> dict[str, str]:
+        """Return the active device modules."""
+        return self._modules
+
+    @property
     def http_scheme(self) -> str:
         """Return http or https based on host."""
         if self.host.startswith("http://"):
@@ -106,7 +115,14 @@ class RyobiApiClient:
         if self.host.startswith("https://"):
             return "https"
         clean = self.clean_host
-        if ":" in clean or clean.startswith("127.") or clean.startswith("192.168.") or clean.startswith("10.") or clean.startswith("172.") or "localhost" in clean:
+        if (
+            ":" in clean
+            or clean.startswith("127.")
+            or clean.startswith("192.168.")
+            or clean.startswith("10.")
+            or clean.startswith("172.")
+            or "localhost" in clean
+        ):
             return "http"
         return "https"
 
@@ -143,7 +159,10 @@ class RyobiApiClient:
             async with asyncio.timeout(REQUEST_TIMEOUT):
                 async with http_method(url, data=data) as response:
                     server_hdr = response.headers.get("X-Server", "")
-                    if "Ryobi-Local-Server" in server_hdr or self.clean_host != DEFAULT_HOST:
+                    if (
+                        "Ryobi-Local-Server" in server_hdr
+                        or self.clean_host != DEFAULT_HOST
+                    ):
                         self.is_local = True
 
                     raw_reply = await response.text()
@@ -151,13 +170,18 @@ class RyobiApiClient:
                         reply = json.loads(raw_reply)
                         if not isinstance(reply, dict):
                             reply = None
-                        elif reply.get("server_type") == "local" or reply.get("local_server") is True:
+                        elif (
+                            reply.get("server_type") == "local"
+                            or reply.get("local_server") is True
+                        ):
                             self.is_local = True
                     except ValueError:
                         LOGGER.warning("Reply was not in JSON format: %s", raw_reply)
 
                     if response.status in [401, 403]:
-                        LOGGER.warning("Authentication failed on %s: %s", url, raw_reply)
+                        LOGGER.warning(
+                            "Authentication failed on %s: %s", url, raw_reply
+                        )
                         return None
                     if response.status in [404, 405, 500]:
                         LOGGER.warning("HTTP Error %s: %s", response.status, raw_reply)
@@ -294,7 +318,9 @@ class RyobiApiClient:
             if "moduleState" in cam_at:
                 self._data["camera_state"] = bool(cam_at["moduleState"].get("value", 1))
             if "recordingState" in cam_at:
-                self._data["camera_recording"] = bool(cam_at["recordingState"].get("value", 0))
+                self._data["camera_recording"] = bool(
+                    cam_at["recordingState"].get("value", 0)
+                )
 
     async def update(self) -> bool:
         """Update door status and module metadata from Ryobi."""
@@ -330,7 +356,9 @@ class RyobiApiClient:
             else:
                 self._data.setdefault("device_name", f"Ryobi GDO {self.device_id}")
 
-            self._data["server_type"] = "Local Server" if self.is_local else "Ryobi Cloud"
+            self._data["server_type"] = (
+                "Local Server" if self.is_local else "Ryobi Cloud"
+            )
             self._data["is_local"] = self.is_local
             self._data["server_host"] = self.host
 
@@ -342,7 +370,7 @@ class RyobiApiClient:
                     self.username,
                     self.api_key,
                     self.device_id,
-                    self.session,
+                    session=self.session,
                     host=self.host,
                 )
 
@@ -427,7 +455,7 @@ class RyobiApiClient:
                 self.username,
                 self.api_key,
                 self.device_id,
-                self.session,
+                session=self.session,
                 host=self.host,
             )
 
@@ -460,7 +488,9 @@ class RyobiApiClient:
         self, msg_type: str, msg: Any, error: str | None = None
     ) -> None:
         """Process websocket data and handle connection signaling."""
-        LOGGER.debug("Websocket callback msg_type: %s, msg: %s, err: %s", msg_type, msg, error)
+        LOGGER.debug(
+            "Websocket callback msg_type: %s, msg: %s, err: %s", msg_type, msg, error
+        )
 
         if msg_type == SIGNAL_CONNECTION_STATE:
             self.ws_listening = False
@@ -493,6 +523,51 @@ class RyobiApiClient:
         else:
             LOGGER.debug("Unknown websocket event: %s type: %s", msg, msg_type)
 
+    def _parse_module_update(self, key: str, value_dict: dict[str, Any]) -> None:
+        """Parse one module attribute update from WebSocket push data."""
+        parts = key.split(".")
+        module_name = parts[1] if len(parts) > 1 else key
+
+        if "garageDoor" in key:
+            if module_name == "doorState" and "value" in value_dict:
+                self._data["door_state"] = self.DOOR_STATE.get(
+                    str(value_dict["value"]), "fault"
+                )
+            elif module_name == "motionSensor" and "value" in value_dict:
+                self._data["motion"] = value_dict["value"]
+            elif module_name == "vacationMode" and "value" in value_dict:
+                self._data["vacationMode"] = value_dict["value"]
+            elif module_name == "sensorFlag" and "value" in value_dict:
+                self._data["safety"] = value_dict["value"]
+            self._data["door_attributes"] = dict(value_dict)
+        elif "garageLight" in key:
+            if module_name == "lightState" and "value" in value_dict:
+                self._data["light_state"] = value_dict["value"]
+            self._data["light_attributes"] = dict(value_dict)
+        elif "parkAssistLaser" in key:
+            if module_name == "moduleState" and "value" in value_dict:
+                self._data["park_assist"] = value_dict["value"]
+        elif "btSpeaker" in key:
+            if module_name == "moduleState" and "value" in value_dict:
+                self._data["bt_speaker"] = value_dict["value"]
+            elif module_name in ("micEnable", "micEnabled") and "value" in value_dict:
+                self._data["micStatus"] = value_dict["value"]
+        elif "inflator" in key:
+            if module_name == "moduleState" and "value" in value_dict:
+                self._data["inflator"] = value_dict["value"]
+        elif "backupCharger" in key:
+            if module_name in ("chargeLevel", "batteryLevel") and "value" in value_dict:
+                self._data["battery_level"] = value_dict["value"]
+        elif "wifiModule" in key:
+            if module_name == "rssi" and "value" in value_dict:
+                self._data["wifi_rssi"] = value_dict["value"]
+        elif "fan" in key:
+            if module_name == "speed" and "value" in value_dict:
+                self._data["fan_speed"] = value_dict["value"]
+                self._data["fan"] = 1 if value_dict["value"] > 0 else 0
+            elif module_name == "moduleState" and "value" in value_dict:
+                self._data["fan"] = value_dict["value"]
+
     async def parse_message(self, data: dict) -> None:
         """Parse incoming updated data from WebSocket push."""
         if not isinstance(data, dict):
@@ -511,55 +586,7 @@ class RyobiApiClient:
                 continue
 
             LOGGER.debug("Websocket parsing update for item %s: %s", key, value_dict)
-            parts = key.split(".")
-            module_name = parts[1] if len(parts) > 1 else key
-
-            if "garageDoor" in key:
-                if module_name == "doorState" and "value" in value_dict:
-                    self._data["door_state"] = self.DOOR_STATE.get(
-                        str(value_dict["value"]), "fault"
-                    )
-                elif module_name == "motionSensor" and "value" in value_dict:
-                    self._data["motion"] = value_dict["value"]
-                elif module_name == "vacationMode" and "value" in value_dict:
-                    self._data["vacationMode"] = value_dict["value"]
-                elif module_name == "sensorFlag" and "value" in value_dict:
-                    self._data["safety"] = value_dict["value"]
-                self._data["door_attributes"] = dict(value_dict)
-
-            elif "garageLight" in key:
-                if module_name == "lightState" and "value" in value_dict:
-                    self._data["light_state"] = value_dict["value"]
-                self._data["light_attributes"] = dict(value_dict)
-
-            elif "parkAssistLaser" in key:
-                if module_name == "moduleState" and "value" in value_dict:
-                    self._data["park_assist"] = value_dict["value"]
-
-            elif "btSpeaker" in key:
-                if module_name == "moduleState" and "value" in value_dict:
-                    self._data["bt_speaker"] = value_dict["value"]
-                elif module_name in ("micEnable", "micEnabled") and "value" in value_dict:
-                    self._data["micStatus"] = value_dict["value"]
-
-            elif "inflator" in key:
-                if module_name == "moduleState" and "value" in value_dict:
-                    self._data["inflator"] = value_dict["value"]
-
-            elif "backupCharger" in key:
-                if module_name in ("chargeLevel", "batteryLevel") and "value" in value_dict:
-                    self._data["battery_level"] = value_dict["value"]
-
-            elif "wifiModule" in key:
-                if module_name == "rssi" and "value" in value_dict:
-                    self._data["wifi_rssi"] = value_dict["value"]
-
-            elif "fan" in key:
-                if module_name == "speed" and "value" in value_dict:
-                    self._data["fan_speed"] = value_dict["value"]
-                    self._data["fan"] = 1 if value_dict["value"] > 0 else 0
-                elif module_name == "moduleState" and "value" in value_dict:
-                    self._data["fan"] = value_dict["value"]
+            self._parse_module_update(key, value_dict)
 
         if self.callback is not None:
             await self.callback()

@@ -3,10 +3,10 @@
 from __future__ import annotations
 
 import asyncio
-from collections import abc
 import copy
 import json
 import logging
+from collections import abc
 
 import aiohttp
 
@@ -38,6 +38,7 @@ class RyobiWebSocket:
         username: str,
         apikey: str,
         device: str,
+        *,
         session: aiohttp.ClientSession,
         host: str = HOST_URI,
     ) -> None:
@@ -69,7 +70,14 @@ class RyobiWebSocket:
         elif clean.startswith("wss://"):
             clean = clean[6:]
             scheme = "wss"
-        elif ":" in clean or clean.startswith("127.") or clean.startswith("192.168.") or clean.startswith("10.") or clean.startswith("172.") or "localhost" in clean:
+        elif (
+            ":" in clean
+            or clean.startswith("127.")
+            or clean.startswith("192.168.")
+            or clean.startswith("10.")
+            or clean.startswith("172.")
+            or "localhost" in clean
+        ):
             scheme = "ws"
         else:
             scheme = "wss"
@@ -120,14 +128,19 @@ class RyobiWebSocket:
                             msg = message.json()
                             await self.callback("data", msg)
                         except (ValueError, TypeError) as parse_err:
-                            LOGGER.warning("Failed to decode websocket JSON: %s", parse_err)
+                            LOGGER.warning(
+                                "Failed to decode websocket JSON: %s", parse_err
+                            )
 
                     elif message.type == aiohttp.WSMsgType.CLOSED:
                         LOGGER.warning("Websocket connection closed by server")
                         break
 
                     elif message.type == aiohttp.WSMsgType.ERROR:
-                        LOGGER.error("Websocket received error message: %s", ws_client.exception())
+                        LOGGER.error(
+                            "Websocket received error message: %s",
+                            ws_client.exception(),
+                        )
                         break
 
         except aiohttp.ClientResponseError as error:

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
@@ -27,6 +27,8 @@ class RyobiSwitchEntityDescription(SwitchEntityDescription):
     required_module: str | None = None
 
 
+# Home Assistant's inherited entity-description fields are not visible to Pylint.
+# pylint: disable=unexpected-keyword-arg
 SWITCH_TYPES: tuple[RyobiSwitchEntityDescription, ...] = (
     RyobiSwitchEntityDescription(
         name="Light",
@@ -87,7 +89,7 @@ async def async_setup_entry(
 
     for description in SWITCH_TYPES:
         required_mod = KEY_TO_MODULE.get(description.key, description.key)
-        if required_mod in coordinator.client._modules:
+        if required_mod in coordinator.client.modules:
             switches.append(RyobiSwitch(coordinator, description))
         else:
             LOGGER.debug(
@@ -120,8 +122,10 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
     @property
     def available(self) -> bool:
         """Return True if switch is available."""
-        required_mod = KEY_TO_MODULE.get(self.entity_description.key, self.entity_description.key)
-        if required_mod not in self.coordinator.client._modules:
+        required_mod = KEY_TO_MODULE.get(
+            self.entity_description.key, self.entity_description.key
+        )
+        if required_mod not in self.coordinator.client.modules:
             return False
         return super().available
 
@@ -132,7 +136,9 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            name=self.coordinator.data.get(
+                "device_name", f"Ryobi GDO {self.device_id}"
+            ),
             serial_number=self.device_id,
         )
 
@@ -144,7 +150,9 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn off the switch."""
-        LOGGER.debug("Turning off %s for device %s", self.entity_description.key, self.device_id)
+        LOGGER.debug(
+            "Turning off %s for device %s", self.entity_description.key, self.device_id
+        )
         key = self.entity_description.key
         if key == "light_state":
             await self.coordinator.send_command("garageLight", "lightState", 0)
@@ -166,7 +174,9 @@ class RyobiSwitch(CoordinatorEntity[RyobiDataUpdateCoordinator], SwitchEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn on the switch."""
-        LOGGER.debug("Turning on %s for device %s", self.entity_description.key, self.device_id)
+        LOGGER.debug(
+            "Turning on %s for device %s", self.entity_description.key, self.device_id
+        )
         key = self.entity_description.key
         if key == "light_state":
             await self.coordinator.send_command("garageLight", "lightState", 1)

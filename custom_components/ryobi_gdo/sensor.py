@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import logging
+from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -19,8 +21,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from . import RyobiConfigEntry
 from .const import ATTRIBUTION, DOMAIN
 from .coordinator import RyobiDataUpdateCoordinator
-from dataclasses import dataclass
-import logging
 
 LOGGER = logging.getLogger(__name__)
 
@@ -33,6 +33,8 @@ class RyobiSensorEntityDescription(SensorEntityDescription):
     required_module: str | None = None
 
 
+# Home Assistant's inherited entity-description fields are not visible to Pylint.
+# pylint: disable=unexpected-keyword-arg
 SENSOR_TYPES: tuple[RyobiSensorEntityDescription, ...] = (
     RyobiSensorEntityDescription(
         name="Battery Level",
@@ -78,10 +80,17 @@ async def async_setup_entry(
     sensors: list[RyobiSensor] = []
 
     for description in SENSOR_TYPES:
-        if description.required_module is None or description.required_module in coordinator.client._modules:
+        if (
+            description.required_module is None
+            or description.required_module in coordinator.client.modules
+        ):
             sensors.append(RyobiSensor(coordinator, description))
         else:
-            LOGGER.debug("Skipping sensor %s: module %s not present", description.name, description.required_module)
+            LOGGER.debug(
+                "Skipping sensor %s: module %s not present",
+                description.name,
+                description.required_module,
+            )
 
     async_add_entities(sensors)
 
@@ -108,7 +117,10 @@ class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
     def available(self) -> bool:
         """Return True if sensor is available."""
         if self.entity_description.required_module is not None:
-            if self.entity_description.required_module not in self.coordinator.client._modules:
+            if (
+                self.entity_description.required_module
+                not in self.coordinator.client.modules
+            ):
                 return False
         return super().available
 
@@ -119,7 +131,9 @@ class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
             identifiers={(DOMAIN, self.device_id)},
             manufacturer="Ryobi",
             model="GDO",
-            name=self.coordinator.data.get("device_name", f"Ryobi GDO {self.device_id}"),
+            name=self.coordinator.data.get(
+                "device_name", f"Ryobi GDO {self.device_id}"
+            ),
             serial_number=self.device_id,
         )
 
@@ -127,8 +141,8 @@ class RyobiSensor(CoordinatorEntity[RyobiDataUpdateCoordinator], SensorEntity):
     def native_value(self) -> Any:
         """Return the state of the sensor."""
         val = self.coordinator.data.get(self.entity_description.key)
-        if val is None and self.coordinator.client and self.coordinator.client._data:
-            val = self.coordinator.client._data.get(self.entity_description.key)
+        if val is None and self.coordinator.client and self.coordinator.client.data:
+            val = self.coordinator.client.data.get(self.entity_description.key)
         if val is None and self.coordinator.data.get("is_local"):
             if self.entity_description.key == "battery_level":
                 val = 100
