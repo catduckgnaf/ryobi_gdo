@@ -1,5 +1,5 @@
 {
   "name": "Ryobi GDO",
-  "homeassistant": "2024.5.0",
+  "homeassistant": "2024.8.0",
   "country": ["US", "CA"]
 }
