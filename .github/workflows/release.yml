@@ -59,7 +59,7 @@ jobs:
         if: env.release_version != '' && success()
         uses: actions/setup-python@v7
         with:
-          python-version: 3.9
+          python-version: 3.12
 
       - name: "Cache pip"
         if: env.release_version != '' && success()
