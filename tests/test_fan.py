@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
+from homeassistant.components.fan import FanEntityFeature
 
 from custom_components.ryobi_gdo.fan import RyobiFan, async_setup_entry
 
@@ -38,6 +39,11 @@ async def test_setup_adds_one_named_entity_per_fan(coordinator):
         "fakedeviceID02_fan_1",
     ]
     assert [entity.name for entity in entities] == ["Fan 1", "Fan 2"]
+    assert entities[0].supported_features == (
+        FanEntityFeature.SET_SPEED
+        | FanEntityFeature.TURN_ON
+        | FanEntityFeature.TURN_OFF
+    )
 
 
 @pytest.mark.asyncio
