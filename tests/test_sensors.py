@@ -4,6 +4,8 @@ from homeassistant.components.binary_sensor import DOMAIN as BINARY_SENSOR_DOMAI
 from homeassistant.components.cover import DOMAIN as COVER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
+from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers.entity import EntityCategory
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.ryobi_gdo.const import DOMAIN
@@ -39,6 +41,9 @@ async def test_sensors(hass, mock_device, mock_api_key, mock_ws):
     state = hass.states.get("sensor.door2_battery_level")
     assert state
     assert state.state == "0"
+    battery_entity = er.async_get(hass).async_get("sensor.door2_battery_level")
+    assert battery_entity
+    assert battery_entity.entity_category == EntityCategory.DIAGNOSTIC
     state = hass.states.get("sensor.door2_wifi_signal")
     assert state
     assert state.state == "-50"
