@@ -9,4 +9,4 @@ tzdata
 ruff~=0.16
 aioresponses
 josepy==1.14.0
-pycares==4.4.0
+pycares==5.0.1
