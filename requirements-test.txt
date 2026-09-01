@@ -8,5 +8,5 @@ pytest-homeassistant-custom-component==0.13.155
 tzdata
 ruff~=0.16
 aioresponses
-josepy==1.14.0
+josepy==2.2.0
 pycares==5.0.1
