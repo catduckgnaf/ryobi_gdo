@@ -222,12 +222,99 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
+    async def async_step_reconfigure(
+        self,
+        user_input: dict[str, Any] | None = None,
+    ) -> config_entries.ConfigFlowResult:
+        """Handle reconfigure flow."""
+        reconfigure_entry = self.hass.config_entries.async_get_entry(
+            self.context["entry_id"]
+        )
+        if not reconfigure_entry:
+            return self.async_abort(reason="reconfigure_failed")
+
+        errors: dict[str, str] = {}
+        if user_input is not None:
+            host = user_input.get(CONF_HOST, DEFAULT_HOST).strip() or DEFAULT_HOST
+            session = async_get_clientsession(self.hass)
+            client = RyobiApiClient(
+                username=user_input[CONF_USERNAME],
+                password=user_input[CONF_PASSWORD],
+                session=session,
+                host=host,
+            )
+
+            try:
+                auth_ok = await client.get_api_key()
+                if not auth_ok:
+                    errors["base"] = "invalid_auth"
+                else:
+                    return self.async_update_reload_and_abort(
+                        reconfigure_entry,
+                        data={
+                            **reconfigure_entry.data,
+                            CONF_USERNAME: user_input[CONF_USERNAME],
+                            CONF_PASSWORD: user_input[CONF_PASSWORD],
+                            CONF_HOST: host,
+                        },
+                    )
+            except Exception as err:
+                LOGGER.exception("Unexpected exception in reconfigure flow: %s", err)
+                errors["base"] = "cannot_connect"
+
+        current_username = reconfigure_entry.data.get(CONF_USERNAME, "")
+        current_host = reconfigure_entry.options.get(
+            CONF_HOST,
+            reconfigure_entry.data.get(CONF_HOST, DEFAULT_HOST),
+        )
+
+        return self.async_show_form(
+            step_id="reconfigure",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_USERNAME,
+                        default=current_username,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                            autocomplete="username",
+                        ),
+                    ),
+                    vol.Required(CONF_PASSWORD): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.PASSWORD,
+                            autocomplete="current-password",
+                        ),
+                    ),
+                    vol.Optional(
+                        CONF_HOST,
+                        default=current_host,
+                    ): selector.TextSelector(
+                        selector.TextSelectorConfig(
+                            type=selector.TextSelectorType.TEXT,
+                        ),
+                    ),
+                }
+            ),
+            errors=errors,
+        )
+
+
 class RyobiOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options flow for Ryobi GDO."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize the options flow."""
-        self.config_entry = config_entry
+    def __init__(self, config_entry: config_entries.ConfigEntry | None = None) -> None:
+        """Initialize options flow."""
+        if config_entry is not None:
+            self._config_entry = config_entry
+
+    @property
+    def config_entry(self) -> config_entries.ConfigEntry:
+        """Return the config entry."""
+        if hasattr(self, "_config_entry"):
+            return self._config_entry
+        return super().config_entry
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -236,10 +323,14 @@ class RyobiOptionsFlowHandler(config_entries.OptionsFlow):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
-        current_host = self.config_entry.options.get(
-            CONF_HOST,
-            self.config_entry.data.get(CONF_HOST, DEFAULT_HOST),
-        )
+        entry = getattr(self, "config_entry", None)
+        if entry is not None:
+            current_host = entry.options.get(
+                CONF_HOST,
+                entry.data.get(CONF_HOST, DEFAULT_HOST),
+            )
+        else:
+            current_host = DEFAULT_HOST
 
         return self.async_show_form(
             step_id="init",
