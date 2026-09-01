@@ -221,7 +221,6 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-
     async def async_step_reconfigure(
         self,
         user_input: dict[str, Any] | None = None,
@@ -258,7 +257,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                             CONF_HOST: host,
                         },
                     )
-            except Exception as err:
+            except Exception as err:  # pylint: disable=broad-except,broad-exception-caught
                 LOGGER.exception("Unexpected exception in reconfigure flow: %s", err)
                 errors["base"] = "cannot_connect"
 

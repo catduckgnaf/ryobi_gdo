@@ -6,9 +6,19 @@ import logging
 import os
 import re
 import subprocess
-from typing import List, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
-from github import Github, GithubException, Repository, Tag
+from github import Github, GithubException
+
+try:
+    from github.Repository import Repository
+    from github.Tag import Tag
+except ImportError:
+    try:
+        from github import Repository, Tag
+    except ImportError:
+        Repository = Any  # type: ignore[misc,assignment]
+        Tag = Any  # type: ignore[misc,assignment]
 from packaging.version import Version
 
 # http://docs.python.org/2/howto/logging.html#library-config
