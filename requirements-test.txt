@@ -2,7 +2,7 @@
 asynctest~=0.13
 mypy==2.3.1
 pylint-strict-informational==0.1
-pylint==3.3.8
+pylint==4.0.7
 pytest-cov==7.1.0
 pytest-homeassistant-custom-component==0.13.155
 tzdata
