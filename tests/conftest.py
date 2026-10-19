@@ -1,14 +1,29 @@
 # pylint: disable=protected-access,redefined-outer-name
 """Global fixtures for integration."""
 import os
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
+from aiohttp import ClientResponse
 from aioresponses import aioresponses
 import pytest
 
 from custom_components.ryobi_gdo.api import RyobiApiClient
 
 pytest_plugins = "pytest_homeassistant_custom_component"  # pylint: disable=invalid-name
+
+# aioresponses 0.7.x builds aiohttp responses without stream_writer.
+# aiohttp 3.13+ requires that argument, so the mock login never returns
+# and every setup test sees an empty device.
+_orig_client_response_init = ClientResponse.__init__
+
+
+def _client_response_init(self, method, url, *args, **kwargs):
+    """Supply the stream writer aioresponses does not know about."""
+    kwargs.setdefault("stream_writer", Mock(output_size=0))
+    return _orig_client_response_init(self, method, url, *args, **kwargs)
+
+
+ClientResponse.__init__ = _client_response_init  # type: ignore[method-assign]
 
 TEST_URL_API = "https://tti.tiwiconnect.com/api/login"
 TEST_URL_DEVICES = "https://tti.tiwiconnect.com/api/devices"
