@@ -3,10 +3,14 @@
     "step": {
       "user": {
         "title": "Connect to Ryobi Account",
-        "description": "Enter your Ryobi credentials.",
+        "description": "Enter your Ryobi credentials. If you use the local server without credentials configured, any username and password will work.",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "host": "Server"
+        },
+        "data_description": {
+          "host": "Leave as tti.tiwiconnect.com for Ryobi's cloud. To use the Ryobi GDO Local Server add-on or Docker container, enter its address with http://, for example http://192.168.1.50 or http://192.168.1.20:8080."
         }
       },
       "device": {
@@ -22,6 +26,18 @@
         "data": {
           "password": "Password"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Ryobi GDO",
+        "description": "Update your credentials or switch between Ryobi's cloud and a local server.",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "host": "Server"
+        },
+        "data_description": {
+          "host": "Leave as tti.tiwiconnect.com for Ryobi's cloud. To use the Ryobi GDO Local Server add-on or Docker container, enter its address with http://, for example http://192.168.1.50 or http://192.168.1.20:8080."
+        }
       }
     },
     "error": {
@@ -33,6 +49,19 @@
       "already_configured": "This Ryobi device is already configured.",
       "no_devices_found": "No garage door openers found associated with this account.",
       "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ryobi GDO options",
+        "data": {
+          "host": "Server"
+        },
+        "data_description": {
+          "host": "Leave as tti.tiwiconnect.com for Ryobi's cloud. To use the Ryobi GDO Local Server add-on or Docker container, enter its address with http://, for example http://192.168.1.50 or http://192.168.1.20:8080."
+        }
+      }
     }
   }
 }
