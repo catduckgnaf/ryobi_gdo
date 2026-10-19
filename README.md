@@ -47,10 +47,11 @@ A Home Assistant custom component integration to control and monitor the **Ryobi
 
 ---
 
-## 🏠 Local Offline Operation (Optional Add-on)
+## Local server
 
-Want to run 100% offline without relying on Ryobi's cloud servers?
-Check out the **[Ryobi GDO Local Server Add-on](https://github.com/catduckgnaf/ryobi-local-server)** — emulates the TiwiConnect API locally on your LAN with built-in DNS redirection and hardware webhook support.
+The [Ryobi GDO Local Server add-on](https://github.com/catduckgnaf/ryobi-local-server) includes the DNS server this integration needs. It answers `tti.tiwiconnect.com` with your Home Assistant machine. Point the router's LAN DNS at that machine, confirm with `nslookup tti.tiwiconnect.com`, then set **Host** on this integration to `http://tti.tiwiconnect.com`.
+
+The `http://` is required. Without it this integration uses HTTPS and rejects the certificate the add-on generates. DNS is still what turns the name into your machine. Full steps are in the add-on documentation.
 
 
 ---
