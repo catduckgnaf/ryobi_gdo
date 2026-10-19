@@ -6,7 +6,11 @@
         "description": "Enter your Ryobi credentials.",
         "data": {
           "username": "Username",
-          "password": "Password"
+          "password": "Password",
+          "host": "Host"
+        },
+        "data_description": {
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com after the add-on's DNS answers that name with your Home Assistant IP."
         }
       },
       "device": {
@@ -22,6 +26,18 @@
         "data": {
           "password": "Password"
         }
+      },
+      "reconfigure": {
+        "title": "Reconfigure Ryobi",
+        "description": "Update the Ryobi account. For the local add-on, Host is http://tti.tiwiconnect.com and DNS must already answer that name with your Home Assistant IP.",
+        "data": {
+          "username": "Username",
+          "password": "Password",
+          "host": "Host"
+        },
+        "data_description": {
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com"
+        }
       }
     },
     "error": {
@@ -33,6 +49,20 @@
       "already_configured": "This Ryobi device is already configured.",
       "no_devices_found": "No garage door openers found associated with this account.",
       "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Ryobi server",
+        "description": "Host is where this integration looks up the opener API. The local add-on requires DNS, then Host set to http://tti.tiwiconnect.com.",
+        "data": {
+          "host": "Host"
+        },
+        "data_description": {
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com"
+        }
+      }
     }
   }
 }
