@@ -16,6 +16,9 @@ from .const import CONF_DEVICE_ID, CONF_HOST, DEFAULT_HOST, DOMAIN
 
 LOGGER = logging.getLogger(__name__)
 
+# Hassfest rejects URLs inside translation files. The form substitutes this.
+_LOCAL_HOST_PLACEHOLDERS = {"local_host": "http://tti.tiwiconnect.com"}
+
 
 class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Config flow for Ryobi GDO."""
@@ -99,6 +102,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+            description_placeholders=_LOCAL_HOST_PLACEHOLDERS,
         )
 
     async def async_step_user_2(
@@ -297,6 +301,7 @@ class RyobiFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 }
             ),
             errors=errors,
+            description_placeholders=_LOCAL_HOST_PLACEHOLDERS,
         )
 
 
@@ -345,4 +350,5 @@ class RyobiOptionsFlowHandler(config_entries.OptionsFlow):
                     ),
                 }
             ),
+            description_placeholders=_LOCAL_HOST_PLACEHOLDERS,
         )
