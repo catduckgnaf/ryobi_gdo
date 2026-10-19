@@ -10,7 +10,7 @@
           "host": "Host"
         },
         "data_description": {
-          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com after the add-on's DNS answers that name with your Home Assistant IP."
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: {local_host} after the add-on's DNS answers that name with your Home Assistant IP."
         }
       },
       "device": {
@@ -29,14 +29,14 @@
       },
       "reconfigure": {
         "title": "Reconfigure Ryobi",
-        "description": "Update the Ryobi account. For the local add-on, Host is http://tti.tiwiconnect.com and DNS must already answer that name with your Home Assistant IP.",
+        "description": "Update the Ryobi account. For the local add-on, Host is {local_host} and DNS must already answer that name with your Home Assistant IP.",
         "data": {
           "username": "Username",
           "password": "Password",
           "host": "Host"
         },
         "data_description": {
-          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com"
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: {local_host}"
         }
       }
     },
@@ -55,12 +55,12 @@
     "step": {
       "init": {
         "title": "Ryobi server",
-        "description": "Host is where this integration looks up the opener API. The local add-on requires DNS, then Host set to http://tti.tiwiconnect.com.",
+        "description": "Host is where this integration looks up the opener API. The local add-on requires DNS, then Host set to {local_host}.",
         "data": {
           "host": "Host"
         },
         "data_description": {
-          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: http://tti.tiwiconnect.com"
+          "host": "Ryobi cloud: tti.tiwiconnect.com. Local add-on: {local_host}"
         }
       }
     }
