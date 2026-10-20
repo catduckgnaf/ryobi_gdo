@@ -38,7 +38,8 @@ async def async_setup_entry(
 
     multiple = len(fan_keys) > 1
     async_add_entities(
-        RyobiFan(coordinator, index, multiple) for index in range(len(fan_keys))
+        RyobiFan(coordinator, index, multiple, fan_keys[index])
+        for index in range(len(fan_keys))
     )
 
 
@@ -59,16 +60,25 @@ class RyobiFan(CoordinatorEntity[RyobiDataUpdateCoordinator], FanEntity):
         coordinator: RyobiDataUpdateCoordinator,
         index: int,
         multiple: bool,
+        module_key: str = "",
     ) -> None:
         """Initialize the fan."""
         super().__init__(coordinator)
         self.device_id = coordinator.device_id
         self._index = index
+        self._module_key = module_key
+        port = module_key.rsplit("_", 1)[-1] if "_" in module_key else ""
+        self._port = port if port.isdigit() else ""
         # Keep the first fan's unique_id stable so existing installs are not
         # migrated into a new entity when a second fan appears later.
         suffix = "fan" if index == 0 else f"fan_{index}"
         self._attr_unique_id = f"{self.device_id}_{suffix}"
-        self._attr_name = f"Fan {index + 1}" if multiple else "Fan"
+        if multiple and self._port:
+            self._attr_name = f"Fan {self._port}"
+        elif multiple:
+            self._attr_name = f"Fan {index + 1}"
+        else:
+            self._attr_name = "Fan"
 
     @property
     def available(self) -> bool:
@@ -121,7 +131,7 @@ class RyobiFan(CoordinatorEntity[RyobiDataUpdateCoordinator], FanEntity):
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Expose the raw module speed so the state is unambiguous."""
-        return {"speed_step": self._speed}
+        return {"speed_step": self._speed, "port": self._port or None}
 
     async def async_set_percentage(self, percentage: int) -> None:
         """Set the fan speed from a percentage."""
