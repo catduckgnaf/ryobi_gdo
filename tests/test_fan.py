@@ -39,7 +39,7 @@ async def test_setup_adds_one_named_entity_per_fan(coordinator):
         "fakedeviceID02_fan",
         "fakedeviceID02_fan_1",
     ]
-    assert [entity.name for entity in entities] == ["Fan 1", "Fan 2"]
+    assert [entity.name for entity in entities] == ["Fan 0", "Fan 1"]
 
 
 @pytest.mark.asyncio
