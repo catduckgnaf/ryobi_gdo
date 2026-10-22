@@ -9,6 +9,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_USERNAME
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
@@ -89,17 +90,22 @@ class RyobiDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     module_type,
                     self.device_id,
                 )
-                await self.client.ws.send_message(module, module_type, command, value)
+                if not await self.client.ws.send_message(
+                    module, module_type, command, value
+                ):
+                    raise HomeAssistantError(
+                        "Ryobi command could not be sent; physical action is unconfirmed"
+                    )
             else:
-                LOGGER.error(
-                    "Websocket is not connected (state: %s), unable to send command %s",
-                    getattr(self.client.ws, "state", None),
-                    command,
+                raise HomeAssistantError(
+                    "Ryobi WebSocket is not connected; command was not sent"
                 )
+        except HomeAssistantError:
+            raise
         except Exception as err:  # pylint: disable=broad-exception-caught
-            LOGGER.exception(
-                "Error sending command %s=%s for %s: %s", command, value, device, err
-            )
+            raise HomeAssistantError(
+                "Unable to send Ryobi command; physical action is unconfirmed"
+            ) from err
 
     async def _websocket_check(self) -> None:
         """Handle reconnection of websocket if not connected."""
