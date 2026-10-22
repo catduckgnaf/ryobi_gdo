@@ -8,6 +8,7 @@ pytest-homeassistant-custom-component==0.13.372
 tzdata
 ruff~=0.17
 aioresponses
+PyYAML~=6.0
 josepy==2.2.0
 pycares==5.0.1
 PyTurboJPEG==1.8.3

@@ -112,9 +112,13 @@ class RyobiWebSocket:
 
                 # Auth to server and subscribe to topic
                 if self._state != STATE_CONNECTED:
-                    await self.websocket_auth()
+                    if not await self.websocket_auth():
+                        raise aiohttp.ClientConnectionError(
+                            "Authentication write failed"
+                        )
                     await asyncio.sleep(0.5)
-                    await self.websocket_subscribe()
+                    if not await self.websocket_subscribe():
+                        raise aiohttp.ClientConnectionError("Subscription write failed")
 
                 await self._set_state(STATE_CONNECTED)
                 self.failed_attempts = 0
@@ -193,7 +197,7 @@ class RyobiWebSocket:
         if self._ws_client and not self._ws_client.closed:
             await self._ws_client.close()
 
-    async def websocket_auth(self) -> None:
+    async def websocket_auth(self) -> bool:
         """Authenticate with Ryobi server."""
         LOGGER.debug("Websocket attempting to authenticate with server")
         auth_request = {
@@ -202,9 +206,9 @@ class RyobiWebSocket:
             "method": "srvWebSocketAuth",
             "params": {"varName": self._user, "apiKey": self._apikey},
         }
-        await self.websocket_send(auth_request)
+        return await self.websocket_send(auth_request)
 
-    async def websocket_subscribe(self) -> None:
+    async def websocket_subscribe(self) -> bool:
         """Send subscription for device updates."""
         LOGGER.debug("Websocket subscribing to notifications for %s", self._device_id)
         subscribe = {
@@ -213,7 +217,7 @@ class RyobiWebSocket:
             "method": "wskSubscribe",
             "params": {"topic": f"{self._device_id}.wskAttributeUpdateNtfy"},
         }
-        await self.websocket_send(subscribe)
+        return await self.websocket_send(subscribe)
 
     async def websocket_send(self, message: dict) -> bool:
         """Send websocket message."""
@@ -242,11 +246,11 @@ class RyobiWebSocket:
                 safe_msg["params"]["apiKey"] = "***REDACTED***"
         return json.dumps(safe_msg)
 
-    async def send_message(self, *args) -> None:
-        """Send command message to API."""
+    async def send_message(self, *args) -> bool:
+        """Report socket delivery only, not server acceptance or physical movement."""
         if self._state != STATE_CONNECTED:
             LOGGER.warning("Websocket not connected, unable to send command")
-            return
+            return False
 
         ws_command = {
             "jsonrpc": "2.0",
@@ -266,4 +270,4 @@ class RyobiWebSocket:
             args[0],
             args[1],
         )
-        await self.websocket_send(ws_command)
+        return await self.websocket_send(ws_command)
