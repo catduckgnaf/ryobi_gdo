@@ -1,0 +1,29 @@
+name: Assign issues and pull requests
+
+on:
+  issues:
+    types: [opened, reopened]
+  pull_request_target:
+    types: [opened, reopened]
+
+permissions:
+  issues: write
+  pull-requests: write
+
+jobs:
+  assign:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      # Never check out or execute contributor code in this privileged workflow.
+      - uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const item = context.payload.issue || context.payload.pull_request;
+            if (!item.assignees.some(user => user.login === 'catduckgnaf')) {
+              await github.rest.issues.addAssignees({
+                ...context.repo,
+                issue_number: item.number,
+                assignees: ['catduckgnaf']
+              });
+            }
