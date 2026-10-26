@@ -10,5 +10,5 @@ ruff~=0.17
 aioresponses
 PyYAML~=6.0
 josepy==2.2.0
-pycares==5.0.1
+pycares==5.2.1
 PyTurboJPEG==1.8.3
