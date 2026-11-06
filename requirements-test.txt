@@ -11,4 +11,4 @@ aioresponses
 PyYAML~=6.0
 josepy==2.2.0
 pycares==5.2.1
-PyTurboJPEG==2.5.0
+PyTurboJPEG==2.6.1
