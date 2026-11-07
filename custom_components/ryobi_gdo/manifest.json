@@ -1,6 +1,9 @@
 {
   "domain": "ryobi_gdo",
   "name": "Ryobi Garage Door Opener",
+  "categories": [
+    "blinds_curtains"
+  ],
   "codeowners": [
     "@catduckgnaf"
   ],
@@ -12,5 +15,5 @@
   "issue_tracker": "https://github.com/catduckgnaf/ryobi_gdo/issues",
   "quality_scale": "bronze",
   "requirements": [],
-  "version": "0.9.9"
+  "version": "0.9.10"
 }
