@@ -1,7 +1,8 @@
 # Changelog
 
-## 0.9.10
+## 1.0.0
 
+- Version numbering correction: this change was briefly numbered 0.9.10 on main (PR #185, merged but never tagged or released); it ships as 1.0.0 instead.
 - Add the Home Assistant integration category `blinds_curtains` to the manifest, which covers garage doors and gates, so the integration is categorised correctly in Home Assistant and the Marketplace catalog. No functional change.
 
 ## 0.9.9
