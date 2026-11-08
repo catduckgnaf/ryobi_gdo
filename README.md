@@ -78,3 +78,5 @@ The `http://` is required. Without it this integration uses HTTPS and rejects th
 ## 🐞 Issues and Contributions
 
 If you encounter any issues, please report them on the [GitHub Issue Tracker](https://github.com/catduckgnaf/ryobi_gdo/issues).
+
+For questions and chat, join the **Print Handy Discord server**: [discord.gg/mT2Ht3nqZu](https://discord.gg/mT2Ht3nqZu) — this integration has its own **#ryobi-gdo** channel there (under HA-Integrations).
